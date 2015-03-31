@@ -6,17 +6,17 @@
  */
 
 /**
- * Page callback; render iframe containing AjaXplorer.
+ * Page callback; render iframe containing Pydio.
  */
-function sfudora_ajaxplorer_frame() {
+function islandora_pydio_bridge_frame() {
   $output = array();
-  $module_path = drupal_get_path('module', 'sfudora');
-  drupal_add_js("$module_path/js/ajaxplorer_frame.js");
-  drupal_add_css("$module_path/css/ajaxplorer_frame.css");
+  $module_path = drupal_get_path('module', 'islandora_pydio_bridge');
+  drupal_add_js("$module_path/js/islandora_pydio_bridge_frame.js");
+  drupal_add_css("$module_path/css/islandora_pydio_bridge.theme.css");
 
-  $sfu_path = variable_get('ajxp_path', 'ajaxplorer');
-  $output['Simon Fraser University AjaXplorer'] = array(
-    '#markup' => "<iframe id=\"ajaxplorer_frame\" src=\"$sfu_path\"></iframe>",
+  $sfu_path = variable_get('islandora_pydio_bridge_pydio_path', 'pydio');
+  $output['Islandora Pydio Bridge'] = array(
+    '#markup' => "<iframe id=\"pydio_frame\" src=\"$sfu_path\"></iframe>",
   );
   return $output;
 }

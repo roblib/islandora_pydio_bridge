@@ -11,15 +11,15 @@
  * A few $_GET parameters we care about:
  * - is_dir: Whether the file to we're ingesting is actually a direcotry of
  *   files.
- * - download_base_url: Where to hit Ajaxplorer.
- * - download_query_params: URL-encoded parameters to throw back at Ajaxplorer
+ * - download_base_url: Where to hit Pydio.
+ * - download_query_params: URL-encoded parameters to throw back at Pydio
  *   when we go to download whatever resource. We'll parse 'em into an
  *   associative array so they're easier to use later.
  *
  * @return array
  *   A form, 'cause forms are awesome.
  */
-function sfudora_ajaxplorer_ingest() {
+function islandora_pydio_bridge_ingest() {
   $params = drupal_get_query_parameters();
 
   // Parse download_query_params into an associative array.
@@ -36,25 +36,25 @@ function sfudora_ajaxplorer_ingest() {
     $file_path = $params['download_query_params']['file'];
   }
 
-  $pids = sfudora_ajaxplorer_object_check($file_path, $params['repo_id']);
+  $pids = islandora_pydio_bridge_object_check($file_path, $params['repo_id']);
   if ($pids && empty($params['pid_list'])) {
     if ($params['is_dir'] == 'true') {
       drupal_set_message(t("Folders cannot be updated.  This will create a new collection."), "error");
-      return drupal_get_form('sfudora_ajaxplorer_ingest_form', $params);
+      return drupal_get_form('islandora_pydio_bridge_ingest_form', $params);
     }
     $params['pid_list'] = $pids;
-    return drupal_get_form('sfudora_ajaxplorer_update_form', $params);
+    return drupal_get_form('islandora_pydio_bridge_update_form', $params);
   }
   else {
-    return drupal_get_form('sfudora_ajaxplorer_ingest_form', $params);
+    return drupal_get_form('islandora_pydio_bridge_ingest_form', $params);
   }
 }
 
 /**
  * Form building function.
  */
-function sfudora_ajaxplorer_ingest_form($form, &$form_state, $params) {
-  form_load_include($form_state, 'inc', 'sfudora', 'includes/ajaxplorer_ingest');
+function islandora_pydio_bridge_ingest_form($form, &$form_state, $params) {
+  form_load_include($form_state, 'inc', 'islandora_pydio_bridge', 'includes/pydio_ingest');
 
   $download_url = url($params['download_base_url'], array(
     'query' => $params['download_query_params'],
@@ -64,7 +64,7 @@ function sfudora_ajaxplorer_ingest_form($form, &$form_state, $params) {
   $form_state['storage']['download_url'] = $download_url;
   $form_state['storage']['ajaxplorer_params'] = $params;
 
-  $form_name = "SFU DDI form";
+  $form_name = "Islandora Pydio Bridge DDI form";
   $form = xml_form_builder_get_form($form, $form_state, $form_name);
 
   $form['restrict_options'] = array(
@@ -107,7 +107,7 @@ function sfudora_ajaxplorer_ingest_form($form, &$form_state, $params) {
   );
 
   // Choose xacml.
-  $xacml_path = drupal_get_path('module', 'sfudora') . SFUDORA_XACML_FOLDER;
+  $xacml_path = drupal_get_path('module', 'islandora_pydio_bridge') . ISLANDORA_PYDIO_BRIDGE_XACML_FOLDER;
   $xacmls = file_scan_directory($xacml_path, '/.*\.xml$/');
 
   $options = array();
@@ -135,7 +135,7 @@ function sfudora_ajaxplorer_ingest_form($form, &$form_state, $params) {
   );
 
   if ($params['is_dir'] == 'true') {
-    sfudora_ajaxplorer_folder_ingest_form($form, $form_state, $params);
+    islandora_pydio_bridge__folder_ingest_form($form, $form_state, $params);
   }
 
   return $form;
@@ -147,7 +147,7 @@ function sfudora_ajaxplorer_ingest_form($form, &$form_state, $params) {
  * @param array $params
  *   The parameters that ajaxplorer passed.
  */
-function sfudora_ajaxplorer_folder_ingest_form(&$form, &$form_state, $params) {
+function islandora_pydio_bridge__folder_ingest_form(&$form, &$form_state, $params) {
   $file = $params['download_query_params']['file'];
   $path = explode('/', $file);
   $name = end($path);
@@ -158,7 +158,7 @@ function sfudora_ajaxplorer_folder_ingest_form(&$form, &$form_state, $params) {
 /**
  * Form validation function.
  */
-function sfudora_ajaxplorer_ingest_form_validate(&$form, &$form_state) {
+function islandora_pydio_bridge_ingest_form_validate(&$form, &$form_state) {
   // TODO: Do the XML Form validation stuffs...
   $date = $form_state['values']['embargo_date'];
   $time_now = time();
@@ -183,7 +183,7 @@ function sfudora_ajaxplorer_ingest_form_validate(&$form, &$form_state) {
 /**
  * Form submission function.
  */
-function sfudora_ajaxplorer_ingest_form_submit(&$form, &$form_state) {
+function islandora_pydio_bridge_ingest_form_submit(&$form, &$form_state) {
 
   // Get the ajaxplorer params.
   $params = $form_state['storage']['ajaxplorer_params'];
@@ -198,29 +198,29 @@ function sfudora_ajaxplorer_ingest_form_submit(&$form, &$form_state) {
   // Set up a batch operation.
   $batch = array(
     'operations' => array(
-      array('sfudora_ajaxplorer_download_file_data', array(
+      array('islandora_pydio_bridge_download_file_data', array(
           $params, $download_url)),
-      array('sfudora_ajaxplorer_ingest_object_batch',
+      array('islandora_pydio_bridge_ingest_object_batch',
         array($form, $form_state)),
     ),
-    'title' => t('SFU Ingest'),
+    'title' => t('Islandora Pydio Bridge Ingest'),
     'init_message' => t('Ingest from DataSync'),
     'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaning @estimate.'),
     'error_message' => t('An error has occurred.'),
-    'file' => drupal_get_path('module', 'sfudora') . '/includes/ajaxplorer_ingest.inc',
-    'finished' => 'sfudora_ajaxplorer_ingest_object_finished',
+    'file' => drupal_get_path('module', 'islandora_pydio_bridge') . '/includes/pydio_ingest.inc',
+    'finished' => 'islandora_pydio_bridge_ingest_object_finished',
   );
   batch_set($batch);
-  batch_process("sfudora/ajaxplorer");
+  batch_process(ISLANDORA_PYDIO_BRIDGE_PYDIO_FRAME);
 }
 
 /**
  * Form update.
  */
-function sfudora_ajaxplorer_update_form($form, &$form_state, $params) {
-  form_load_include($form_state, 'inc', 'sfudora', 'includes/ajaxplorer_ingest');
+function islandora_pydio_bridge_update_form($form, &$form_state, $params) {
+  form_load_include($form_state, 'inc', 'islandora_pydio_bridge', 'includes/ajaxplorer_ingest');
 
-  drupal_set_title("SFU Update");
+  drupal_set_title("Islandora Pydio Bridge Update");
 
   $download_url = url($params['download_base_url'], array(
     'query' => $params['download_query_params'],
@@ -266,7 +266,7 @@ function sfudora_ajaxplorer_update_form($form, &$form_state, $params) {
 /**
  * Form submission function.
  */
-function sfudora_ajaxplorer_update_form_submit(&$form, &$form_state) {
+function islandora_pydio_bridge_update_form_submit(&$form, &$form_state) {
 
   $update_list = array();
 
@@ -278,7 +278,7 @@ function sfudora_ajaxplorer_update_form_submit(&$form, &$form_state) {
 
   // If the list is empty then go to ingest form.
   if (!$update_list) {
-    $url = url("sfudora/ingest/", array('absolute' => TRUE, 'query' => $form_state['storage']['ajaxplorer_params']));
+    $url = url("pydio/ingest/", array('absolute' => TRUE, 'query' => $form_state['storage']['ajaxplorer_params']));
     drupal_goto($url);
   }
   // Get the ajaxplorer params.
@@ -294,26 +294,26 @@ function sfudora_ajaxplorer_update_form_submit(&$form, &$form_state) {
   // Set up a batch operation.
   $batch = array(
     'operations' => array(
-      array('sfudora_ajaxplorer_download_file_data', array(
+      array('islandora_pydio_bridge_download_file_data', array(
         $params, $download_url)),
-      array('sfudora_ajaxplorer_update_object_batch',
+      array('islandora_pydio_bridge_update_object_batch',
         array($form, $form_state, $update_list)),
     ),
-    'title' => t('SFU Update'),
+    'title' => t('Islandora Pydio Bridge Update'),
     'init_message' => t('Update from DataSync'),
     'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaning @estimate.'),
     'error_message' => t('An error has occurred.'),
-    'file' => drupal_get_path('module', 'sfudora') . '/includes/ajaxplorer_ingest.inc',
-    'finished' => 'sfudora_ajaxplorer_update_object_finished',
+    'file' => drupal_get_path('module', 'islandora_pydio_bridge') . '/includes/ajaxplorer_ingest.inc',
+    'finished' => 'islandora_pydio_bridge_update_object_finished',
   );
   batch_set($batch);
-  batch_process("sfudora/ajaxplorer");
+  batch_process(ISLANDORA_PYDIO_BRIDGE_PYDIO_FRAME);
 }
 
 /**
  * The batch process of ingest object.
  */
-function sfudora_ajaxplorer_ingest_object_batch($form, $form_state, &$context) {
+function islandora_pydio_bridge_ingest_object_batch($form, $form_state, &$context) {
   $files = $context['results']['files'];
   $result = &$context['results'];
   $sandbox = &$context['sandbox'];
@@ -331,7 +331,7 @@ function sfudora_ajaxplorer_ingest_object_batch($form, $form_state, &$context) {
   $form_state['storage']['ajaxplorer_params']['is_dir'] = "false";
   $offset = $sandbox['offset'];
 
-  $pid = sfudora_ajaxplorer_ingest_single_object($form, $form_state, $files[$offset], $result);
+  $pid = islandora_pydio_bridge_ingest_single_object($form, $form_state, $files[$offset], $result);
   $result['islandora_batch_ingest_object'][$files[$offset]->ajaxplorer_file_path] = $pid;
   $sandbox['offset']++;
 
@@ -345,9 +345,9 @@ function sfudora_ajaxplorer_ingest_object_batch($form, $form_state, &$context) {
 /**
  * Batch finish function.
  */
-function sfudora_ajaxplorer_ingest_object_finished($success, $results, $operations) {
+function islandora_pydio_bridge_ingest_object_finished($success, $results, $operations) {
   if ($success) {
-    $root_collection = variable_get('sfudora_repository_pid', 'islandora:root');
+    $root_collection = variable_get('islandora_pydio_bridge_repository_pid', 'islandora:root');
     drupal_goto('islandora');
   }
 }
@@ -355,7 +355,7 @@ function sfudora_ajaxplorer_ingest_object_finished($success, $results, $operatio
 /**
  * The batch process of ingest object.
  */
-function sfudora_ajaxplorer_update_object_batch($form, $form_state, $update_list, &$context) {
+function islandora_pydio_bridge_update_object_batch($form, $form_state, $update_list, &$context) {
   $file = $context['results']['files'][0];
   $result = &$context['results'];
   $sandbox = &$context['sandbox'];
@@ -373,7 +373,7 @@ function sfudora_ajaxplorer_update_object_batch($form, $form_state, $update_list
   $form_state['storage']['ajaxplorer_params']['is_dir'] = "false";
   $offset = $sandbox['offset'];
 
-  sfudora_ajaxplorer_update_obj_datastream($form, $form_state, $file, $update_list[$offset]);
+  islandora_pydio_bridge_update_obj_datastream($form, $form_state, $file, $update_list[$offset]);
   $sandbox['offset']++;
 
   if ($sandbox['offset'] >= $sandbox['total']) {
@@ -386,9 +386,9 @@ function sfudora_ajaxplorer_update_object_batch($form, $form_state, $update_list
 /**
  * Batch finish function.
  */
-function sfudora_ajaxplorer_update_object_finished($success, $results, $operations) {
+function islandora_pydio_bridge_update_object_finished($success, $results, $operations) {
   if ($success) {
-    $root_collection = variable_get('sfudora_repository_pid', 'islandora:root');
+    $root_collection = variable_get('islandora_pydio_bridge_repository_pid', 'islandora:root');
     drupal_goto('islandora');
   }
 }
@@ -406,11 +406,11 @@ function sfudora_ajaxplorer_update_object_finished($success, $results, $operatio
  * @return string
  *   The new object pid.
  */
-function sfudora_ajaxplorer_ingest_single_object(&$form, &$form_state, $file_info, $result) {
+function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file_info, $result) {
   module_load_include('inc', 'islandora', 'includes/utilities');
 
-  $parent_collection = variable_get('sfudora_repository_pid', 'islandora:root');
-  // If the parent collection is not sfudora root then find the pid of the
+  $parent_collection = variable_get('islandora_pydio_bridge_repository_pid', 'islandora:root');
+  // If the parent collection is not islandora_pydio_bridge root then find the pid of the
   // parent collection.
   if (isset($file_info->parent_collection) && $file_info->parent_collection != $parent_collection) {
     $parent_collection = $result['islandora_batch_ingest_object'][$file_info->parent_collection];
@@ -424,19 +424,20 @@ function sfudora_ajaxplorer_ingest_single_object(&$form, &$form_state, $file_inf
   // file path.
   $file_info->file_name = isset($file_info->file_name) ? $file_info->file_name : $file_info->ajaxplorer_file_path;
 
-  $content_model = isset($file_info->content_model) ? $file_info->content_model : sfudora_ajaxplorer_get_content_model($file_info->file_name);
-  $new_object = islandora_prepare_new_object("sfu", $title, array(), array($content_model), array(array('relationship' => 'isMemberOfCollection', 'pid' => $parent_collection)));
+  $content_model = isset($file_info->content_model) ? $file_info->content_model : islandora_pydio_bridge_get_content_model($file_info->file_name);
+  // TODO get the pid namespaces for this content model in this collection.
+  $new_object = islandora_prepare_new_object(variable_get("islandora_pydio_bridge_namespace", "researchData"), $title, array(), array($content_model), array(array('relationship' => 'isMemberOfCollection', 'pid' => $parent_collection)));
 
   // If the object is a file then add the OBJ and DDI datastream.
   if (isset($file_info->is_file) && $file_info->is_file == TRUE) {
     // Create OBJ datastream.
-    sfudora_ajaxplorer_ingest_create_obj_datastream($form, $form_state, $new_object, $file_info);
+    islandora_pydio_bridge_ingest_create_obj_datastream($form, $form_state, $new_object, $file_info);
     // Create the DDI datastream.
-    sfudora_ajaxplorer_ingest_create_ddi_datastream($form, $form_state, $new_object);
+    islandora_pydio_bridge_ingest_create_ddi_datastream($form, $form_state, $new_object);
   }
 
   if ($content_model == 'islandora:collectionCModel') {
-    sfudora_ajaxplorer_ingest_create_policy_datastream($new_object, $parent_collection);
+    islandora_pydio_bridge_ingest_create_policy_datastream($new_object, $parent_collection);
   }
   // Add embargo to this object.
   if (isset($form_state['values']['restrict_options']) &&
@@ -449,18 +450,18 @@ function sfudora_ajaxplorer_ingest_single_object(&$form, &$form_state, $file_inf
     else {
       $embargo_date = "indefinite";
     }
-    sfudora_ajaxplorer_ingest_set_embargo(array($new_object), $embargo_date);
+    islandora_pydio_bridge_ingest_set_embargo(array($new_object), $embargo_date);
   }
 
   // Set the xacml policy datastream.
   if (isset($form_state['values']['restrict_options']) &&
       $form_state['values']['restrict_options'] == 'xacml') {
-    sfudora_ajaxplorer_ingest_set_xacml($new_object, $form_state['values']['xacml']);
+    islandora_pydio_bridge_ingest_set_xacml($new_object, $form_state['values']['xacml']);
   }
 
   // Add the ajaxplorer file path and repository id to RELS-EXT
   $repo_id = $form_state['storage']['ajaxplorer_params']['repo_id'];
-  sfudora_ajaxplorer_add_file_object_relationship($file_info->ajaxplorer_file_path, $repo_id, $new_object);
+  islandora_pydio_bridge_add_file_object_relationship($file_info->ajaxplorer_file_path, $repo_id, $new_object);
 
   // Add object.
   islandora_add_object($new_object);
@@ -478,7 +479,7 @@ function sfudora_ajaxplorer_ingest_single_object(&$form, &$form_state, $file_inf
  * @param object $new_object
  *   The new Object.
  */
-function sfudora_ajaxplorer_ingest_create_ddi_datastream(&$form, &$form_state, $new_object) {
+function islandora_pydio_bridge_ingest_create_ddi_datastream(&$form, &$form_state, $new_object) {
 
   // Make copies of the form and form_state.
   $ddi_form = $form;
@@ -513,7 +514,7 @@ function sfudora_ajaxplorer_ingest_create_ddi_datastream(&$form, &$form_state, $
  * @param string $parent_collection 
  *   The parent collection
  */
-function sfudora_ajaxplorer_ingest_create_policy_datastream($new_object, $parent_collection) {
+function islandora_pydio_bridge_ingest_create_policy_datastream($new_object, $parent_collection) {
   $collection = islandora_object_load($parent_collection);
   $policy_xml = $collection['COLLECTION_POLICY']->content;
   $policy = new CollectionPolicy($policy_xml);
@@ -538,7 +539,7 @@ function sfudora_ajaxplorer_ingest_create_policy_datastream($new_object, $parent
  * @return string
  *   Returns the temporary file path of the downloaded file.
  */
-function sfudora_ajaxplorer_ingest_create_obj_datastream(&$form, &$form_state, $new_object, $file_info) {
+function islandora_pydio_bridge_ingest_create_obj_datastream(&$form, &$form_state, $new_object, $file_info) {
   module_load_include('inc', 'islandora', 'includes/mime_detect');
 
   $mime_detect = new MimeDetect();
@@ -569,7 +570,7 @@ function sfudora_ajaxplorer_ingest_create_obj_datastream(&$form, &$form_state, $
  * @return string
  *   Returns the temporary file path of the downloaded file.
  */
-function sfudora_ajaxplorer_update_obj_datastream(&$form, &$form_state, $file_info, $update_object) {
+function islandora_pydio_bridge_update_obj_datastream(&$form, &$form_state, $file_info, $update_object) {
 
   $pid = $update_object['pid'];
   $object = islandora_object_load($pid);
@@ -584,7 +585,7 @@ function sfudora_ajaxplorer_update_obj_datastream(&$form, &$form_state, $file_in
  * @param string $end
  *   The expire date (yyyy-mm-dd).
  */
-function sfudora_ajaxplorer_ingest_set_embargo($objects, $end = "indefinite") {
+function islandora_pydio_bridge_ingest_set_embargo($objects, $end = "indefinite") {
   module_load_include('inc', 'islandora_scholar_embargo');
   foreach ($objects as $object) {
     islandora_scholar_embargo_set_embargo($object, NULL, $end);
@@ -599,7 +600,7 @@ function sfudora_ajaxplorer_ingest_set_embargo($objects, $end = "indefinite") {
  * @param string $xacml
  *   The real path pf the xacml file.
  */
-function sfudora_ajaxplorer_ingest_set_xacml($object, $xacml) {
+function islandora_pydio_bridge_ingest_set_xacml($object, $xacml) {
 
   $xacml_ds = $object->constructDatastream('POLICY', 'X');
   $xacml_ds->setContentFromFile($xacml);
@@ -620,7 +621,7 @@ function sfudora_ajaxplorer_ingest_set_xacml($object, $xacml) {
  * @returns string $temp_file_path
  *   The path of the file in the tmp directory.
  */
-function sfudora_ajaxplorer_download_file_data($params, $download_url, &$context) {
+function islandora_pydio_bridge_download_file_data($params, $download_url, &$context) {
   $context['message'] = t('Downloading Content.');
   // Get the path info of the download_url
   $download_url_path_info = pathinfo($download_url);
@@ -651,10 +652,10 @@ function sfudora_ajaxplorer_download_file_data($params, $download_url, &$context
 
   if ($is_zip_file) {
     // Creates file and collection arrays, storing in the context results.
-    sfudora_ajaxplorer_get_folder_data($temp_file_path, $context);
+    islandora_pydio_bridge_get_folder_data($temp_file_path, $context);
   }
   else {
-    sfudora_ajaxplorer_get_file_data($params, $temp_file_path, $context);
+    islandora_pydio_bridge_get_file_data($params, $temp_file_path, $context);
   }
 }
 
@@ -664,7 +665,7 @@ function sfudora_ajaxplorer_download_file_data($params, $download_url, &$context
  * @param string $file_data
  *   The download url in ajaxplorer.
  */
-function sfudora_ajaxplorer_get_folder_data($file_data, &$context) {
+function islandora_pydio_bridge_get_folder_data($file_data, &$context) {
 
   $zip = new ZipArchive();
   $zip_file = drupal_realpath($file_data);
@@ -673,7 +674,7 @@ function sfudora_ajaxplorer_get_folder_data($file_data, &$context) {
   }
 
   $count = $zip->numFiles;
-  $root_collection = variable_get('sfudora_repository_pid', 'islandora:root');
+  $root_collection = variable_get('islandora_pydio_bridge_repository_pid', 'islandora:root');
 
   $files_info = array();
   $collections_info = array();
@@ -716,11 +717,11 @@ function sfudora_ajaxplorer_get_folder_data($file_data, &$context) {
  * @param string $file_path
  *   The download url of file.
  */
-function sfudora_ajaxplorer_get_file_data($params, $file_path, &$context) {
+function islandora_pydio_bridge_get_file_data($params, $file_path, &$context) {
 
   $file = drupal_realpath($file_path);
 
-  $root_collection = variable_get('sfudora_repository_pid', 'islandora:root');
+  $root_collection = variable_get('islandora_pydio_bridge_repository_pid', 'islandora:root');
 
   $files_info = array();
   $file_entry = new stdClass();
@@ -744,11 +745,11 @@ function sfudora_ajaxplorer_get_file_data($params, $file_path, &$context) {
  * @param FedoraObject $object
  *   The object that should add relationship
  */
-function sfudora_ajaxplorer_add_file_object_relationship($file_path, $repo_id, $object) {
+function islandora_pydio_bridge_add_file_object_relationship($file_path, $repo_id, $object) {
 
-  $object->relationships->registerNamespace("ajxp", SFUDORA_AJXP_URI);
-  $object->relationships->add(SFUDORA_AJXP_URI, "file", $file_path, TRUE);
-  $object->relationships->add(SFUDORA_AJXP_URI, "repository", $repo_id, TRUE);
+  $object->relationships->registerNamespace("ajxp", ISLANDORA_PYDIO_BRIDGE_PYDIO_URI);
+  $object->relationships->add(ISLANDORA_PYDIO_BRIDGE_PYDIO_URI, "file", $file_path, TRUE);
+  $object->relationships->add(ISLANDORA_PYDIO_BRIDGE_PYDIO_URI, "repository", $repo_id, TRUE);
 }
 
 /**
@@ -762,20 +763,20 @@ function sfudora_ajaxplorer_add_file_object_relationship($file_path, $repo_id, $
  * @return array
  *   Returns the result form the query.
  */
-function sfudora_ajaxplorer_object_check($file_path, $repo_id) {
+function islandora_pydio_bridge_object_check($file_path, $repo_id) {
   module_load_include('inc', 'islandora', 'includes/utilities');
 
   $repo = islandora_get_tuque_connection();
 
-  $ajxp_namespace = SFUDORA_AJXP_URI;
+  $pydio_namespace = ISLANDORA_PYDIO_BRIDGE_PYDIO_URI;
   $query =
-    "PREFIX sfudora:<$ajxp_namespace>
+    "PREFIX pydio:<$pydio_namespace>
     SELECT ?pid ?label
     FROM <#ri>
     WHERE
     {
-      ?pid sfudora:file \"$file_path\" ;
-      sfudora:repository \"$repo_id\" ;
+      ?pid pydio:file \"$file_path\" ;
+      pydio:repository \"$repo_id\" ;
       <fedora-model:label> ?label
     }";
   
@@ -794,7 +795,7 @@ function sfudora_ajaxplorer_object_check($file_path, $repo_id) {
  * @return string
  *   Returns the content model to be used.
  */
-function sfudora_ajaxplorer_get_content_model($file) {
+function islandora_pydio_bridge_get_content_model($file) {
   module_load_include('inc', 'islandora', 'includes/mime_detect');
 
   // Get the mimetype of the file.

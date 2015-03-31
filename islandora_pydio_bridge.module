@@ -5,36 +5,36 @@
  * Module used to house customizations for Simon Fraser University.
  */
 
-define('SFUDORA_INGEST_PATH', 'sfudora/ingest');
-define('SFUDORA_XACML_FOLDER', '/xacml');
-define('SFUDORA_AJXP_URI', 'http://ajaxplorer.info#');
-define('SFUDORA_AJXP_FRAME', 'sfudora/ajaxplorer');
+define('ISLANDORA_PYDIO_BRIDGE_INGEST_PATH', 'islandora_pydio_bridge/ingest');
+define('ISLANDORA_PYDIO_BRIDGE_XACML_FOLDER', '/xacml');
+define('ISLANDORA_PYDIO_BRIDGE_PYDIO_URI', 'http://pyd.io#');
+define('ISLANDORA_PYDIO_BRIDGE_PYDIO_FRAME', 'pydio_bridge/pydio');
 
 /**
  * Implements hook_menu().
  */
-function sfudora_menu() {
+function islandora_pydio_bridge_menu() {
   $items = array();
 
-  $items[SFUDORA_INGEST_PATH] = array(
+  $items[ISLANDORA_PYDIO_BRIDGE_INGEST_PATH] = array(
     'title' => 'Ingest',
-    'access callback' => 'sfudora_ajaxplorer_access_callback',
-    'page callback' => 'sfudora_ajaxplorer_ingest',
-    'file' => 'includes/ajaxplorer_ingest.inc',
+    'access callback' => 'islandora_pydio_bridge_access_callback',
+    'page callback' => 'islandora_pydio_bridge_ingest',
+    'file' => 'includes/pydio_ingest.inc',
     'type' => MENU_CALLBACK,
   );
-  $items[SFUDORA_AJXP_FRAME] = array(
-    'title' => 'AjaXplorer',
-    'access callback' => 'sfudora_ajaxplorer_access_callback',
-    'page callback' => 'sfudora_ajaxplorer_frame',
+  $items[ISLANDORA_PYDIO_BRIDGE_PYDIO_FRAME] = array(
+    'title' => 'Islandora Pydio Bridge',
+    'access callback' => 'islandora_pydio_bridge_access_callback',
+    'page callback' => 'islandora_pydio_bridge_frame',
     'file' => 'includes/iframe.inc',
     'type' => MENU_NORMAL_ITEM,
   );
-  $items['admin/islandora/sfudora'] = array(
-    'title' => 'Simon Fraser University Settings',
-    'description' => 'Configure settings for the sfudora module.',
+  $items['admin/islandora/islandora_pydio_bridge'] = array(
+    'title' => 'Islandora Pydio Bridge Settings',
+    'description' => 'Configure settings for the Islandora Pydio Bridge module.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('sfudora_admin_form'),
+    'page arguments' => array('islandora_pydio_bridge_admin_form'),
     'access arguments' => array('administer site configuration'),
     'file' => 'includes/admin.form.inc',
   );
@@ -45,10 +45,10 @@ function sfudora_menu() {
 /**
  * Implements hook_islandora_required_objects().
  */
-function sfudora_islandora_required_objects(IslandoraTuque $connection) {
-  $module_path = drupal_get_path('module', 'sfudora');
-  // SFU Generic Content Model.
-  $generic_cmodel = $connection->repository->constructObject('sfu:genericCModel');
+function islandora_pydio_bridge_islandora_required_objects(IslandoraTuque $connection) {
+  $module_path = drupal_get_path('module', 'islandora_pydio_bridge');
+  // SFU Generic Content Model. in a ipb (islandora pydio bridge namespace).
+  $generic_cmodel = $connection->repository->constructObject('ipb:genericCModel');
   $generic_cmodel->owner = 'fedoraAdmin';
   $generic_cmodel->label = 'Islandora Miscellaneous File Format Content Model';
   $generic_cmodel->models = 'fedora-system:ContentModel-3.0';
@@ -59,8 +59,8 @@ function sfudora_islandora_required_objects(IslandoraTuque $connection) {
   $generic_cmodel->ingestDatastream($datastream);
 
   return array(
-    'sfudora' => array(
-      'title' => 'Simon Fraser University',
+    'islandora_pydio_bridge' => array(
+      'title' => 'Islandora Pydio Bridge',
       'objects' => array(
         $generic_cmodel,
       ),
@@ -71,20 +71,20 @@ function sfudora_islandora_required_objects(IslandoraTuque $connection) {
 /**
  * Menu access callback.
  */
-function sfudora_ajaxplorer_access_callback() {
+function islandora_pydio_bridge_access_callback() {
   global $user;
 
-  $object = islandora_object_load(variable_get('sfudora_repository_pid', 'islandora:44'));
+  $object = islandora_object_load(variable_get('islandora_pydio_bridge_repository_pid', 'islandora:root'));
   return in_array('authenticated user', $user->roles) && islandora_object_access(ISLANDORA_INGEST, $object, $user);
 }
 
 /**
  * Implements hook_islandora_xml_form_builder_forms().
  */
-function sfudora_islandora_xml_form_builder_forms() {
-  $module_path = drupal_get_path('module', 'sfudora');
+function islandora_pydio_bridge_islandora_xml_form_builder_forms() {
+  $module_path = drupal_get_path('module', 'islandora_pydio_bridge');
   return array(
-    'SFU DDI form' => array(
+    'Islandora Pydio Bridge DDI form' => array(
       'form_file' => "$module_path/xml/DDI_final.xml",
     ),
   );
@@ -93,65 +93,65 @@ function sfudora_islandora_xml_form_builder_forms() {
 /**
  * Implements hook_islandora_content_model_forms_form_associations().
  */
-function sfudora_islandora_content_model_forms_form_associations() {
+function islandora_pydio_bridge_islandora_content_model_forms_form_associations() {
   return array(
-    'sfudora_generic_form' => array(
+    'islandora_pydio_bridge_generic_form' => array(
       'content_model' => 'islandora:binaryObjectCModel',
-      'form_name' => 'SFU DDI form',
+      'form_name' => 'Islandora Pydio Bridge DDI form',
       'dsid' => 'DDI',
       'title_field' => array('stdyDscr', 'citation', 'titlStmt', 'titl'),
       'transform' => 'ddi_to_dc.xsl',
       'self_transform' => 'cleanup_ddi.xsl',
       'template' => FALSE,
     ),
-    'sfudora_basic_image_form' => array(
+    'islandora_pydio_bridge_basic_image_form' => array(
       'content_model' => 'islandora:sp_basic_image',
-      'form_name' => 'SFU DDI form',
+      'form_name' => 'Islandora Pydio Bridge DDI form',
       'dsid' => 'DDI',
       'title_field' => array('stdyDscr', 'citation', 'titlStmt', 'titl'),
       'transform' => 'ddi_to_dc.xsl',
       'self_transform' => 'cleanup_ddi.xsl',
       'template' => FALSE,
     ),
-    'sfudora_large_image_form' => array(
+    'islandora_pydio_bridge_large_image_form' => array(
       'content_model' => 'islandora:sp_large_image_cmodel',
-      'form_name' => 'SFU DDI form',
+      'form_name' => 'Islandora Pydio Bridge DDI form',
       'dsid' => 'DDI',
       'title_field' => array('stdyDscr', 'citation', 'titlStmt', 'titl'),
       'transform' => 'ddi_to_dc.xsl',
       'self_transform' => 'cleanup_ddi.xsl',
       'template' => FALSE,
     ),
-    'sfudora_pdf_form' => array(
+    'islandora_pydio_bridge_pdf_form' => array(
       'content_model' => 'islandora:sp_pdf',
-      'form_name' => 'SFU DDI form',
+      'form_name' => 'Islandora Pydio Bridge DDI form',
       'dsid' => 'DDI',
       'title_field' => array('stdyDscr', 'citation', 'titlStmt', 'titl'),
       'transform' => 'ddi_to_dc.xsl',
       'self_transform' => 'cleanup_ddi.xsl',
       'template' => FALSE,
     ),
-    'sfudora_video_form' => array(
+    'islandora_pydio_bridge_video_form' => array(
       'content_model' => 'islandora:sp_videoCModel',
-      'form_name' => 'SFU DDI form',
+      'form_name' => 'Islandora Pydio Bridge DDI form',
       'dsid' => 'DDI',
       'title_field' => array('stdyDscr', 'citation', 'titlStmt', 'titl'),
       'transform' => 'ddi_to_dc.xsl',
       'self_transform' => 'cleanup_ddi.xsl',
       'template' => FALSE,
     ),
-    'sfudora_audio_form' => array(
+    'islandora_pydio_bridge_audio_form' => array(
       'content_model' => 'islandora:sp-audioCModel',
-      'form_name' => 'SFU DDI form',
+      'form_name' => 'Islandora Pydio Bridge DDI form',
       'dsid' => 'DDI',
       'title_field' => array('stdyDscr', 'citation', 'titlStmt', 'titl'),
       'transform' => 'ddi_to_dc.xsl',
       'self_transform' => 'cleanup_ddi.xsl',
       'template' => FALSE,
     ),
-    'sfudora_data_form' => array(
+    'islandora_pydio_bridge_data_form' => array(
       'content_model' => 'islandora:sp_data',
-      'form_name' => 'SFU DDI form',
+      'form_name' => 'Islandora Pydio Bridge DDI form',
       'dsid' => 'DDI',
       'title_field' => array('stdyDscr', 'citation', 'titlStmt', 'titl'),
       'transform' => 'ddi_to_dc.xsl',
@@ -164,18 +164,18 @@ function sfudora_islandora_content_model_forms_form_associations() {
  /**
   * Implements hook_islandora_xml_form_builder_get_transforms().
   */
- function sfudora_islandora_xml_form_builder_get_transforms() {
-   $module_path = drupal_get_path('module', 'sfudora');
-   return array(
-     'ddi_to_dc.xsl' => "$module_path/xml/ddi_to_dc.xsl",
+function islandora_pydio_bridge_islandora_xml_form_builder_get_transforms() {
+  $module_path = drupal_get_path('module', 'islandora_pydio_bridge');
+  return array(
+    'ddi_to_dc.xsl' => "$module_path/xml/ddi_to_dc.xsl",
   );
 }
 
 /**
  * Implements hook_xml_form_builder_get_self_transforms().
  */
-function sfudora_xml_form_builder_get_self_transforms() {
-  $module_path = drupal_get_path('module', 'sfudora');
+function islandora_pydio_bridge_xml_form_builder_get_self_transforms() {
+  $module_path = drupal_get_path('module', 'islandora_pydio_bridge');
   return array(
     'cleanup_ddi.xsl' => "$module_path/xml/cleanup_ddi.xsl",
   );

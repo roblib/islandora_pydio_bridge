@@ -16,24 +16,24 @@
  * @return array
  *   An array representing the Simon Fraser University admin form.
  */
-function sfudora_admin_form($form, &$form_state) {
-  form_load_include($form_state, 'inc', 'sfudora', 'includes/admin.form');
+function islandora_pydio_bridge_admin_form($form, &$form_state) {
+  form_load_include($form_state, 'inc', 'islandora_pydio_bridge', 'includes/admin.form');
 
   $form = array();
 
   $form['root_collection'] = array(
     '#type' => 'textfield',
     '#title' => t('Root Collection PID for ingest'),
-    '#default_value' => variable_get('sfudora_repository_pid', 'islandora:root'),
+    '#default_value' => variable_get('islandora_pydio_bridge_repository_pid', 'islandora:root'),
     '#description' => t('The PID of the Root Collection Object'),
     '#required' => TRUE,
   );
 
-  $form['ajxp_path'] = array(
+  $form['pydio_path'] = array(
     '#type' => 'textfield',
-    '#title' => t('Ajaxplorer path'),
-    '#default_value' => variable_get('ajxp_path', 'ajaxplorer/'),
-    '#description' => t('The ajxplorer server url and path'),
+    '#title' => t('Pydio path'),
+    '#default_value' => variable_get('pydio_path', 'ajaxplorer/'),
+    '#description' => t('The pydio server url and path'),
     '#required' => TRUE,
   );
 
@@ -49,7 +49,7 @@ function sfudora_admin_form($form, &$form_state) {
 /**
  * Form validation function.
  */
-function sfudora_admin_form_validate(&$form, &$form_state) {
+function islandora_pydio_bridge_admin_form_validate(&$form, &$form_state) {
 
   $object = islandora_object_load($form_state['values']['root_collection']);
   if (!$object) {
@@ -62,9 +62,9 @@ function sfudora_admin_form_validate(&$form, &$form_state) {
 /**
  * Form submission function.
  */
-function sfudora_admin_form_submit(&$form, &$form_state) {
+function islandora_pydio_bridge_admin_form_submit(&$form, &$form_state) {
 
-  variable_set('ajxp_path', $form_state['values']['ajxp_path']);
-  variable_set('sfudora_repository_pid', $form_state['values']['root_collection']);
-  drupal_set_message(t('Simon Fraser University settings saved.'), 'status');
+  variable_set('pydio_path', $form_state['values']['pydio_path']);
+  variable_set('islandora_pydio_bridge_repository_pid', $form_state['values']['root_collection']);
+  drupal_set_message(t('Islandora Pydio Bridge settings saved.'), 'status');
 }

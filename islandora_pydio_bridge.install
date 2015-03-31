@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Install hooks for the SFUdora module.
+ * Install hooks for the islandora_pydio_bridge module.
  */
 
 /**
@@ -10,7 +10,7 @@
  *
  * @see islandora_islandora_required_objects()
  */
-function sfudora_install() {
+function islandora_pydio_bridge_install() {
   module_load_include('inc', 'islandora', 'includes/solution_packs');
-  islandora_install_solution_pack('sfudora');
+  islandora_install_solution_pack('islandora_pydio_bridge');
 }

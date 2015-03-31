@@ -1,5 +1,5 @@
-name = SFUdora
-description = Customizations for Simon Fraser University.
+name = Islandora Pydio Bridge
+description = Allows pydio to ingest directly into Islandora, forked from sfudora.
 dependencies[] = islandora
 dependencies[] = islandora_scholar_embargo
 files[] = tests/ddi_transform.test
