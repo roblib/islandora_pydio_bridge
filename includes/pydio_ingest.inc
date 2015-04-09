@@ -135,7 +135,7 @@ function islandora_pydio_bridge_ingest_form($form, &$form_state, $params) {
   );
 
   if ($params['is_dir'] == 'true') {
-    islandora_pydio_bridge__folder_ingest_form($form, $form_state, $params);
+    islandora_pydio_bridge_folder_ingest_form($form, $form_state, $params);
   }
 
   return $form;
@@ -147,7 +147,7 @@ function islandora_pydio_bridge_ingest_form($form, &$form_state, $params) {
  * @param array $params
  *   The parameters that ajaxplorer passed.
  */
-function islandora_pydio_bridge__folder_ingest_form(&$form, &$form_state, $params) {
+function islandora_pydio_bridge_folder_ingest_form(&$form, &$form_state, $params) {
   $file = $params['download_query_params']['file'];
   $path = explode('/', $file);
   $name = end($path);
@@ -278,7 +278,7 @@ function islandora_pydio_bridge_update_form_submit(&$form, &$form_state) {
 
   // If the list is empty then go to ingest form.
   if (!$update_list) {
-    $url = url("pydio/ingest/", array('absolute' => TRUE, 'query' => $form_state['storage']['ajaxplorer_params']));
+    $url = url("islandora_pydio_bridge/ingest/", array('absolute' => TRUE, 'query' => $form_state['storage']['ajaxplorer_params']));
     drupal_goto($url);
   }
   // Get the ajaxplorer params.
@@ -425,8 +425,8 @@ function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file
   $file_info->file_name = isset($file_info->file_name) ? $file_info->file_name : $file_info->ajaxplorer_file_path;
 
   $content_model = isset($file_info->content_model) ? $file_info->content_model : islandora_pydio_bridge_get_content_model($file_info->file_name);
-  // TODO get the pid namespaces for this content model in this collection.
-  $new_object = islandora_prepare_new_object(variable_get("islandora_pydio_bridge_namespace", "researchData"), $title, array(), array($content_model), array(array('relationship' => 'isMemberOfCollection', 'pid' => $parent_collection)));
+
+  $new_object = islandora_prepare_new_object(variable_get("islandora_pydio_bridge_pid_namespace", "pydio"), $title, array(), array($content_model), array(array('relationship' => 'isMemberOfCollection', 'pid' => $parent_collection)));
 
   // If the object is a file then add the OBJ and DDI datastream.
   if (isset($file_info->is_file) && $file_info->is_file == TRUE) {

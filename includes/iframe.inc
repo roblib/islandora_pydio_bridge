@@ -14,9 +14,9 @@ function islandora_pydio_bridge_frame() {
   drupal_add_js("$module_path/js/islandora_pydio_bridge_frame.js");
   drupal_add_css("$module_path/css/islandora_pydio_bridge.theme.css");
 
-  $sfu_path = variable_get('islandora_pydio_bridge_pydio_path', 'pydio');
+  $pydio_path = variable_get('islandora_pydio_bridge_pydio_path', 'pydio/');
   $output['Islandora Pydio Bridge'] = array(
-    '#markup' => "<iframe id=\"pydio_frame\" src=\"$sfu_path\"></iframe>",
+    '#markup' => "<iframe id=\"pydio_frame\" src=\"$pydio_path\"></iframe>",
   );
   return $output;
 }

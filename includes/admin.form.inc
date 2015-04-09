@@ -32,8 +32,16 @@ function islandora_pydio_bridge_admin_form($form, &$form_state) {
   $form['pydio_path'] = array(
     '#type' => 'textfield',
     '#title' => t('Pydio path'),
-    '#default_value' => variable_get('pydio_path', 'ajaxplorer/'),
+    '#default_value' => variable_get('islandora_pydio_bridge_pydio_path', 'pydio/'),
     '#description' => t('The pydio server url and path'),
+    '#required' => TRUE,
+  );
+
+  $form['islandora_pydio_bridge_pid_namespace'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Pydio Pid Namespace'),
+    '#default_value' => variable_get('islandora_pydio_bridge_pid_namespace', 'pydio'),
+    '#description' => t('The pid namespace to use for items exported from Pydio'),
     '#required' => TRUE,
   );
 
@@ -63,8 +71,8 @@ function islandora_pydio_bridge_admin_form_validate(&$form, &$form_state) {
  * Form submission function.
  */
 function islandora_pydio_bridge_admin_form_submit(&$form, &$form_state) {
-
-  variable_set('pydio_path', $form_state['values']['pydio_path']);
+  variable_set('islandora_pydio_bridge_pid_namespace', $form_state['values']['islandora_pydio_bridge_pid_namespace']);
+  variable_set('islandora_pydio_bridge_pydio_path', $form_state['values']['pydio_path']);
   variable_set('islandora_pydio_bridge_repository_pid', $form_state['values']['root_collection']);
   drupal_set_message(t('Islandora Pydio Bridge settings saved.'), 'status');
 }
