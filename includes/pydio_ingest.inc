@@ -639,7 +639,7 @@ function islandora_pydio_bridge_download_file_data($params, $download_url, &$con
   $temp_file_name = 'pydio_temp';
   $temp_file_path = file_create_filename($temp_file_name, 'temporary://');
   $fp = fopen($temp_file_path, 'w+');
-  var_dump($download_url);exit();
+
   $ch = curl_init($download_url);
   curl_setopt($ch, CURLOPT_COOKIE, $cookies);
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
