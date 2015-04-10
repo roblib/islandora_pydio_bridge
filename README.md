@@ -4,7 +4,11 @@
 
 Allows Pydio users to ingest directly into Islandora from within the Pydio application.
 
-Based off of work by [Simon Fraser University](https://github.com/axfelix/sfudora)
+Based on work done by [Simon Fraser University](https://github.com/axfelix/sfudora)
+This fork of the module removes reference to "Ajaxplorer", replaces them with "Pydio".  Replaces
+references to "Simon Fraser University" with "Islandora Pydio Bridge" and replaces "sfudora" with
+"islandora_pydio_bridge".  This was done in an attempt to make it more generic and usable at
+other institutions.
 
 ## Requirements
 
@@ -36,7 +40,8 @@ Having problems or solved a problem? Check out the Islandora google groups for a
 ## Maintainers/Sponsors
 Current maintainers:
 
-* [Alan Stanley](https://github.com/ajstanley)
+* [Paul Pound](https://github.com/ppound)
+* [Alex Garnett](https://github.com/axfelix), maintainer of orginal
 
 ## Development
 
