@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Ajaxplorer callback stuff.
+ * Pydio callback stuff.
  */
 
 /**
@@ -62,7 +62,7 @@ function islandora_pydio_bridge_ingest_form($form, &$form_state, $params) {
   ));
 
   $form_state['storage']['download_url'] = $download_url;
-  $form_state['storage']['ajaxplorer_params'] = $params;
+  $form_state['storage']['pydio_params'] = $params;
 
   $form_name = "Islandora Pydio Bridge DDI form";
   $form = xml_form_builder_get_form($form, $form_state, $form_name);
@@ -145,7 +145,7 @@ function islandora_pydio_bridge_ingest_form($form, &$form_state, $params) {
  * Hide the title of object ingest form.
  *
  * @param array $params
- *   The parameters that ajaxplorer passed.
+ *   The parameters that pydio passed.
  */
 function islandora_pydio_bridge_folder_ingest_form(&$form, &$form_state, $params) {
   $file = $params['download_query_params']['file'];
@@ -185,8 +185,8 @@ function islandora_pydio_bridge_ingest_form_validate(&$form, &$form_state) {
  */
 function islandora_pydio_bridge_ingest_form_submit(&$form, &$form_state) {
 
-  // Get the ajaxplorer params.
-  $params = $form_state['storage']['ajaxplorer_params'];
+  // Get the pydio params.
+  $params = $form_state['storage']['pydio_params'];
   $download_url = "";
   if (isset($form_state['storage']['download_url'])) {
     $download_url = $form_state['storage']['download_url'];
@@ -218,7 +218,7 @@ function islandora_pydio_bridge_ingest_form_submit(&$form, &$form_state) {
  * Form update.
  */
 function islandora_pydio_bridge_update_form($form, &$form_state, $params) {
-  form_load_include($form_state, 'inc', 'islandora_pydio_bridge', 'includes/ajaxplorer_ingest');
+  form_load_include($form_state, 'inc', 'islandora_pydio_bridge', 'includes/pydio_ingest');
 
   drupal_set_title("Islandora Pydio Bridge Update");
 
@@ -228,7 +228,7 @@ function islandora_pydio_bridge_update_form($form, &$form_state, $params) {
   ));
 
   $form_state['storage']['download_url'] = $download_url;
-  $form_state['storage']['ajaxplorer_params'] = $params;
+  $form_state['storage']['pydio_params'] = $params;
 
   $header = array(
     'pid' => t('Pid'),
@@ -278,11 +278,11 @@ function islandora_pydio_bridge_update_form_submit(&$form, &$form_state) {
 
   // If the list is empty then go to ingest form.
   if (!$update_list) {
-    $url = url("islandora_pydio_bridge/ingest/", array('absolute' => TRUE, 'query' => $form_state['storage']['ajaxplorer_params']));
+    $url = url("islandora_pydio_bridge/ingest/", array('absolute' => TRUE, 'query' => $form_state['storage']['pydio_params']));
     drupal_goto($url);
   }
-  // Get the ajaxplorer params.
-  $params = $form_state['storage']['ajaxplorer_params'];
+  // Get the pydio params.
+  $params = $form_state['storage']['pydio_params'];
   $download_url = "";
   if (isset($form_state['storage']['download_url'])) {
     $download_url = $form_state['storage']['download_url'];
@@ -303,7 +303,7 @@ function islandora_pydio_bridge_update_form_submit(&$form, &$form_state) {
     'init_message' => t('Update from DataSync'),
     'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaning @estimate.'),
     'error_message' => t('An error has occurred.'),
-    'file' => drupal_get_path('module', 'islandora_pydio_bridge') . '/includes/ajaxplorer_ingest.inc',
+    'file' => drupal_get_path('module', 'islandora_pydio_bridge') . '/includes/pydio_ingest.inc',
     'finished' => 'islandora_pydio_bridge_update_object_finished',
   );
   batch_set($batch);
@@ -328,11 +328,11 @@ function islandora_pydio_bridge_ingest_object_batch($form, $form_state, &$contex
     '@start' => $sandbox['offset'],
     '@end' => $sandbox['total'],
   ));
-  $form_state['storage']['ajaxplorer_params']['is_dir'] = "false";
+  $form_state['storage']['pydio_params']['is_dir'] = "false";
   $offset = $sandbox['offset'];
 
   $pid = islandora_pydio_bridge_ingest_single_object($form, $form_state, $files[$offset], $result);
-  $result['islandora_batch_ingest_object'][$files[$offset]->ajaxplorer_file_path] = $pid;
+  $result['islandora_batch_ingest_object'][$files[$offset]->pydio_file_path] = $pid;
   $sandbox['offset']++;
 
   if ($sandbox['offset'] >= $sandbox['total']) {
@@ -370,7 +370,7 @@ function islandora_pydio_bridge_update_object_batch($form, $form_state, $update_
     '@start' => $sandbox['offset'],
     '@end' => $sandbox['total'],
   ));
-  $form_state['storage']['ajaxplorer_params']['is_dir'] = "false";
+  $form_state['storage']['pydio_params']['is_dir'] = "false";
   $offset = $sandbox['offset'];
 
   islandora_pydio_bridge_update_obj_datastream($form, $form_state, $file, $update_list[$offset]);
@@ -420,9 +420,9 @@ function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file
   // either the form title or the file name.
   $title = isset($file_info->file_name) ? $file_info->file_name : $form_state['values']['stdyDscr']['citation']['titlStmt']['titl'];
 
-  // Set the file name to be the file info file name or the ajaxplorer
+  // Set the file name to be the file info file name or the pydio
   // file path.
-  $file_info->file_name = isset($file_info->file_name) ? $file_info->file_name : $file_info->ajaxplorer_file_path;
+  $file_info->file_name = isset($file_info->file_name) ? $file_info->file_name : $file_info->pydio_file_path;
 
   $content_model = isset($file_info->content_model) ? $file_info->content_model : islandora_pydio_bridge_get_content_model($file_info->file_name);
 
@@ -459,9 +459,9 @@ function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file
     islandora_pydio_bridge_ingest_set_xacml($new_object, $form_state['values']['xacml']);
   }
 
-  // Add the ajaxplorer file path and repository id to RELS-EXT
-  $repo_id = $form_state['storage']['ajaxplorer_params']['repo_id'];
-  islandora_pydio_bridge_add_file_object_relationship($file_info->ajaxplorer_file_path, $repo_id, $new_object);
+  // Add the pydio file path and repository id to RELS-EXT
+  $repo_id = $form_state['storage']['pydio_params']['repo_id'];
+  islandora_pydio_bridge_add_file_object_relationship($file_info->pydio_file_path, $repo_id, $new_object);
 
   // Add object.
   islandora_add_object($new_object);
@@ -636,10 +636,10 @@ function islandora_pydio_bridge_download_file_data($params, $download_url, &$con
   $temparray[] = 'path:/';
   $cookies = implode('; ', $temparray);
 
-  $temp_file_name = 'ajaxplorer_temp';
+  $temp_file_name = 'pydio_temp';
   $temp_file_path = file_create_filename($temp_file_name, 'temporary://');
   $fp = fopen($temp_file_path, 'w+');
-
+  var_dump($download_url);exit();
   $ch = curl_init($download_url);
   curl_setopt($ch, CURLOPT_COOKIE, $cookies);
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -663,7 +663,7 @@ function islandora_pydio_bridge_download_file_data($params, $download_url, &$con
  * Get the folder information.
  *
  * @param string $file_data
- *   The download url in ajaxplorer.
+ *   The download url in pydio.
  */
 function islandora_pydio_bridge_get_folder_data($file_data, &$context) {
 
@@ -685,7 +685,7 @@ function islandora_pydio_bridge_get_folder_data($file_data, &$context) {
 
     $file_entry = new stdClass();
     $file_entry->parent_collection = '/' . $path_info['dirname'] . '/';
-    $file_entry->ajaxplorer_file_path = '/' . $name;
+    $file_entry->pydio_file_path = '/' . $name;
     $file_entry->file_name = $path_info['basename'];
 
     if (isset($path_info['extension']) && strpos($path_info['dirname'], '__MACOSX') === FALSE && $path_info['extension'] != 'DS_Store') {
@@ -713,7 +713,7 @@ function islandora_pydio_bridge_get_folder_data($file_data, &$context) {
  * Get the folder information.
  *
  * @param array $params
- *   The ajaxplorer parameters.
+ *   The pydio parameters.
  * @param string $file_path
  *   The download url of file.
  */
@@ -726,7 +726,7 @@ function islandora_pydio_bridge_get_file_data($params, $file_path, &$context) {
   $files_info = array();
   $file_entry = new stdClass();
   $file_entry->parent_collection = $root_collection;
-  $file_entry->ajaxplorer_file_path = $params['download_query_params']['file'];
+  $file_entry->pydio_file_path = $params['download_query_params']['file'];
   $file_entry->is_file = TRUE;
   $file_entry->uri = $file;
   $files_info[] = $file_entry;
@@ -736,12 +736,12 @@ function islandora_pydio_bridge_get_file_data($params, $file_path, &$context) {
 }
 
 /**
- * Add relationship between ajaxplorer file and islandora object.
+ * Add relationship between pydio file and islandora object.
  *
  * @param string $file_path
- *   The path of the file in ajaxplorer.
+ *   The path of the file in pydio.
  * @param string $repo_id
- *   The repository Id of the file on ajaxplorer.
+ *   The repository Id of the file on pydio.
  * @param FedoraObject $object
  *   The object that should add relationship
  */
@@ -756,9 +756,9 @@ function islandora_pydio_bridge_add_file_object_relationship($file_path, $repo_i
  * Check to see if the objects exists in fedora.
  *
  * @param string $file_path
- *   The path of the file in ajaxplorer.
+ *   The path of the file in pydio.
  * @param string $repo_id
- *   The repository Id of the file on ajaxplorer.
+ *   The repository Id of the file on pydio.
  *
  * @return array
  *   Returns the result form the query.
