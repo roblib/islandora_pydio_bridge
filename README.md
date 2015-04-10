@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Allows Pydio users to ingest directly into Islandora from within the Pydio application.
+Allows Pydio users to Export files and folders directly to Islandora from within the Pydio application.
 
 Based on work done by [Simon Fraser University](https://github.com/axfelix/sfudora)
 This fork of the module removes reference to "Ajaxplorer", replaces them with "Pydio".  Replaces
