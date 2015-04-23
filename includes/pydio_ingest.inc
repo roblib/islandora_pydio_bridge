@@ -220,7 +220,7 @@ function islandora_pydio_bridge_ingest_form_submit(&$form, &$form_state) {
 function islandora_pydio_bridge_update_form($form, &$form_state, $params) {
   form_load_include($form_state, 'inc', 'islandora_pydio_bridge', 'includes/pydio_ingest');
 
-  drupal_set_title("Islandora Pydio Bridge Update");
+  drupal_set_title(t("Islandora Pydio Bridge Update"));
 
   $download_url = url($params['download_base_url'], array(
     'query' => $params['download_query_params'],

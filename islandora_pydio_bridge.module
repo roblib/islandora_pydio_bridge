@@ -26,8 +26,8 @@ function islandora_pydio_bridge_menu() {
   $items[ISLANDORA_PYDIO_BRIDGE_PYDIO_FRAME] = array(
     'title' => 'Islandora Pydio Bridge',
     'access callback' => 'islandora_pydio_bridge_access_callback',
-    'page callback' => 'islandora_pydio_bridge_frame',
-    'file' => 'includes/iframe.inc',
+    'page callback' => 'drupal_goto',
+    'page arguments' => array(variable_get("islandora_pydio_bridge_pydio_path", 'pydio')),
     'type' => MENU_NORMAL_ITEM,
   );
   $items['admin/islandora/islandora_pydio_bridge'] = array(
