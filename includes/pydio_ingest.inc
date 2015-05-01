@@ -347,7 +347,10 @@ function islandora_pydio_bridge_ingest_object_batch($form, $form_state, &$contex
  */
 function islandora_pydio_bridge_ingest_object_finished($success, $results, $operations) {
   if ($success) {
-    $root_collection = variable_get('islandora_pydio_bridge_repository_pid', 'islandora:root');
+    global $user;
+    $root_collection = empty($user->data['islandora_pydio_bridge_person_data_collection']) ?
+      variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
+      $user->data['islandora_pydio_bridge_person_data_collection'];
     drupal_goto('islandora');
   }
 }
@@ -388,7 +391,11 @@ function islandora_pydio_bridge_update_object_batch($form, $form_state, $update_
  */
 function islandora_pydio_bridge_update_object_finished($success, $results, $operations) {
   if ($success) {
-    $root_collection = variable_get('islandora_pydio_bridge_repository_pid', 'islandora:root');
+    global $user;
+    $root_collection = empty($user->data['islandora_pydio_bridge_person_data_collection']) ?
+      variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
+      $user->data['islandora_pydio_bridge_person_data_collection'];
+    // TODO fix this
     drupal_goto('islandora');
   }
 }
@@ -407,12 +414,15 @@ function islandora_pydio_bridge_update_object_finished($success, $results, $oper
  *   The new object pid.
  */
 function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file_info, $result) {
+  global $user;
   module_load_include('inc', 'islandora', 'includes/utilities');
+  $parent_collection = empty($user->data['islandora_pydio_bridge_person_data_collection']) ?
+    variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
+    $user->data['islandora_pydio_bridge_person_data_collection'];
 
-  $parent_collection = variable_get('islandora_pydio_bridge_repository_pid', 'islandora:root');
-  // If the parent collection is not islandora_pydio_bridge root then find the pid of the
+  // If the parent collection is not islandora_pydio_bridge root or the users own collection then find the pid of the
   // parent collection.
-  if (isset($file_info->parent_collection) && $file_info->parent_collection != $parent_collection) {
+  if (isset($file_info->parent_collection) && ($file_info->parent_collection != $parent_collection)) {
     $parent_collection = $result['islandora_batch_ingest_object'][$file_info->parent_collection];
   }
 
@@ -423,9 +433,7 @@ function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file
   // Set the file name to be the file info file name or the pydio
   // file path.
   $file_info->file_name = isset($file_info->file_name) ? $file_info->file_name : $file_info->pydio_file_path;
-
   $content_model = isset($file_info->content_model) ? $file_info->content_model : islandora_pydio_bridge_get_content_model($file_info->file_name);
-
   $new_object = islandora_prepare_new_object(variable_get("islandora_pydio_bridge_pid_namespace", "pydio"), $title, array(), array($content_model), array(array('relationship' => 'isMemberOfCollection', 'pid' => $parent_collection)));
 
   // If the object is a file then add the OBJ and DDI datastream.
@@ -666,7 +674,7 @@ function islandora_pydio_bridge_download_file_data($params, $download_url, &$con
  *   The download url in pydio.
  */
 function islandora_pydio_bridge_get_folder_data($file_data, &$context) {
-
+  global $user;
   $zip = new ZipArchive();
   $zip_file = drupal_realpath($file_data);
   if (($error = $zip->open($zip_file)) !== TRUE) {
@@ -674,7 +682,9 @@ function islandora_pydio_bridge_get_folder_data($file_data, &$context) {
   }
 
   $count = $zip->numFiles;
-  $root_collection = variable_get('islandora_pydio_bridge_repository_pid', 'islandora:root');
+  $root_collection = empty($user->data['islandora_pydio_bridge_person_data_collection']) ?
+    variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
+    $user->data['islandora_pydio_bridge_person_data_collection'];
 
   $files_info = array();
   $collections_info = array();
@@ -718,10 +728,12 @@ function islandora_pydio_bridge_get_folder_data($file_data, &$context) {
  *   The download url of file.
  */
 function islandora_pydio_bridge_get_file_data($params, $file_path, &$context) {
-
+  global $user;
   $file = drupal_realpath($file_path);
 
-  $root_collection = variable_get('islandora_pydio_bridge_repository_pid', 'islandora:root');
+  $root_collection = empty($user->data['islandora_pydio_bridge_person_data_collection']) ?
+    variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
+    $user->data['islandora_pydio_bridge_person_data_collection'];
 
   $files_info = array();
   $file_entry = new stdClass();

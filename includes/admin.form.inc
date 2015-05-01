@@ -21,10 +21,10 @@ function islandora_pydio_bridge_admin_form($form, &$form_state) {
 
   $form = array();
 
-  $form['root_collection'] = array(
+  $form['islandora_pydio_bridge_repository_pid'] = array(
     '#type' => 'textfield',
     '#title' => t('Root Collection PID for ingest'),
-    '#default_value' => variable_get('islandora_pydio_bridge_repository_pid', 'islandora:root'),
+    '#default_value' => variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top'),
     '#description' => t('The PID of the Root Collection Object'),
     '#required' => TRUE,
   );
@@ -59,7 +59,7 @@ function islandora_pydio_bridge_admin_form($form, &$form_state) {
  */
 function islandora_pydio_bridge_admin_form_validate(&$form, &$form_state) {
 
-  $object = islandora_object_load($form_state['values']['root_collection']);
+  $object = islandora_object_load($form_state['values']['islandora_pydio_bridge_repository_pid']);
   if (!$object) {
     form_set_error('root_collection', t('%pid does not exist. Enter a valid PID.', array(
       '%pid' => $form_state['values']['root_collection'],
@@ -73,6 +73,6 @@ function islandora_pydio_bridge_admin_form_validate(&$form, &$form_state) {
 function islandora_pydio_bridge_admin_form_submit(&$form, &$form_state) {
   variable_set('islandora_pydio_bridge_pid_namespace', $form_state['values']['islandora_pydio_bridge_pid_namespace']);
   variable_set('islandora_pydio_bridge_pydio_path', $form_state['values']['pydio_path']);
-  variable_set('islandora_pydio_bridge_repository_pid', $form_state['values']['root_collection']);
+  variable_set('islandora_pydio_bridge_repository_pid', $form_state['values']['islandora_pydio_bridge_repository_pid']);
   drupal_set_message(t('Islandora Pydio Bridge settings saved.'), 'status');
 }

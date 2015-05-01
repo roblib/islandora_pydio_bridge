@@ -46,27 +46,126 @@ function islandora_pydio_bridge_menu() {
  * Implements hook_islandora_required_objects().
  */
 function islandora_pydio_bridge_islandora_required_objects(IslandoraTuque $connection) {
-  $module_path = drupal_get_path('module', 'islandora_pydio_bridge');
-  // SFU Generic Content Model. in a ipb (islandora pydio bridge namespace).
-  $generic_cmodel = $connection->repository->constructObject('ipb:genericCModel');
-  $generic_cmodel->owner = 'fedoraAdmin';
-  $generic_cmodel->label = 'Islandora Miscellaneous File Format Content Model';
-  $generic_cmodel->models = 'fedora-system:ContentModel-3.0';
-  $datastream = $generic_cmodel->constructDatastream('DS-COMPOSITE-MODEL', 'X');
-  $datastream->label = 'DS-COMPOSITE-MODEL';
+  $module_path = drupal_get_path('module', 'islandora');
+  // Root Collection.
+  $root_collection = $connection->repository->constructObject('islandora:pydio_data_top');
+  $root_collection->owner = 'fedoraAdmin';
+  $root_collection->label = 'Research Data Collections';
+  $root_collection->models = 'islandora:collectionCModel';
+  // Collection Policy Datastream.
+  $datastream = $root_collection->constructDatastream('COLLECTION_POLICY', 'X');
+  $datastream->label = 'Collection policy';
   $datastream->mimetype = 'text/xml';
-  $datastream->setContentFromFile("$module_path/data/datastreams/generic_CModel/DS-COMPOSITE-MODEL.xml", FALSE);
-  $generic_cmodel->ingestDatastream($datastream);
-
+  $datastream->setContentFromFile("$module_path/xml/islandora_collection_policy.xml", FALSE);
+  $root_collection->ingestDatastream($datastream);
+  // TN Datastream.
+  $datastream = $root_collection->constructDatastream('TN', 'M');
+  $datastream->label = 'Thumbnail';
+  $datastream->mimetype = 'image/png';
+  $datastream->setContentFromFile("$module_path/images/folder.png", FALSE);
+  $root_collection->ingestDatastream($datastream);
   return array(
     'islandora_pydio_bridge' => array(
-      'title' => 'Islandora Pydio Bridge',
-      'objects' => array(
-        $generic_cmodel,
-      ),
+      'title' => 'Islandora Pydio Bridge Data Collection',
+      'objects' => array($root_collection),
     ),
   );
 }
+
+function islandora_pydio_bridge_user_view($account, $view_mode) {
+  $collection_pid = empty($account->data['islandora_pydio_bridge_person_data_collection']) ? NULL :
+    $account->data['islandora_pydio_bridge_person_data_collection'];
+  if (!empty($collection_pid)) {
+    $account->content['islandora_pydio_bridge_user_collection'] = array(
+      '#type' => 'user_profile_category',
+      '#title' => 'Personal Research Data Collection',
+      'research_data_collection' => array(
+        '#markup' => t("Your Personal Data Collection ID is '%collection_pid' and your account user id is '@uid'.",
+          array('%collection_pid' => $collection_pid, '@uid' => $account->uid)),
+        '#type' => 'user_profile_item',
+        '#title' => 'Personal Collection ID',
+      ),
+      '#weight' => 10,
+    );
+  }
+  $entity_pid = empty($account->data['islandora_pydio_bridge_person_entity']) ? NULL :
+    $account->data['islandora_pydio_bridge_person_entity'];
+  if (!empty($entity_pid)) {
+    $account->content['islandora_pydio_bridge_person_entity'] = array(
+      '#type' => 'user_profile_category',
+      '#title' => 'Personal Entity Object',
+      'entity_data_object' => array(
+        '#markup' => t("Your Entity Object ID is '%entity_pid'.",
+          array('%entity_pid' => $entity_pid)),
+        '#type' => 'user_profile_item',
+        '#title' => 'Personal Entity ID',
+      ),
+      '#weight' => 10,
+    );
+  }
+}
+
+/**
+ * Implements user_login hook.
+ *
+ * If you user logs in and does not have a corresponding Islandora personCModel
+ * object we will create one.
+ *
+ * TODO on user deletion should we remove the users fedora data?
+ *
+ * @param array $edit
+ *   The array of form values submitted by the user
+ * @param object $account
+ *   the users object
+ */
+function islandora_pydio_bridge_user_login(&$edit, $account) {
+  module_load_include('inc', 'islandora_pydio_bridge', 'includes/person');
+  if (empty($account->data['islandora_pydio_bridge_personal_collection'])) {
+    try {
+      $person_object = islandora_pydio_bridge_create_person($account);
+    }
+    catch (Exception $e) {
+      watchdog("islandora_pydio_bridge", "Failed to create an Islandora Person
+    object for %user, %message", array(
+        "%user" => $account->name,
+        "%message" => $e->getMessage()
+      ), WATCHDOG_ERROR, NULL);
+    }
+    if (!empty($person_object)) {
+      $person_data = array('data' => array('islandora_pydio_bridge_person_entity' => $person_object->id));
+      user_save($account, $person_data);
+      watchdog("islandora_pydio_bridge", "Successfully created an Islandora Person
+    object for %user with Islandora id of %pid", array(
+        "%user" => $account->name,
+        "%pid" => $person_object->id
+      ), WATCHDOG_INFO, NULL);
+    }
+  }
+
+  if (empty($account->data['islandora_pydio_bridge_person_data_collection'])) {
+    try {
+      $person_collection_object = islandora_pydio_bridge_create_user_subcollection($account);
+    }
+    catch (Exception $e) {
+      watchdog("islandora_pydio_bridge", "Failed to create an Islandora
+    Data Collection for %user, %message", array(
+        "%user" => $account->name,
+        "%message" => $e->getMessage()
+      ), WATCHDOG_ERROR, NULL);
+    }
+
+    if (!empty($person_collection_object)) {
+      $person_collection_data = array('data' => array('islandora_pydio_bridge_person_data_collection' => $person_collection_object->id));
+      user_save($account, $person_collection_data);
+      watchdog("islandora_pydio_bridge", "Successfully created an Islandora
+    Data Collection for %user with Islandora id of %pid", array(
+        "%user" => $account->name,
+        "%pid" => $person_collection_object->id
+      ), WATCHDOG_INFO, NULL);
+    }
+  }
+}
+
 
 /**
  * Menu access callback.
@@ -74,7 +173,7 @@ function islandora_pydio_bridge_islandora_required_objects(IslandoraTuque $conne
 function islandora_pydio_bridge_access_callback() {
   global $user;
 
-  $object = islandora_object_load(variable_get('islandora_pydio_bridge_repository_pid', 'islandora:root'));
+  $object = islandora_object_load(variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top'));
   return in_array('authenticated user', $user->roles) && islandora_object_access(ISLANDORA_INGEST, $object, $user);
 }
 
@@ -159,11 +258,11 @@ function islandora_pydio_bridge_islandora_content_model_forms_form_associations(
       'template' => FALSE,
     ),
   );
- }
- 
- /**
-  * Implements hook_islandora_xml_form_builder_get_transforms().
-  */
+}
+
+/**
+ * Implements hook_islandora_xml_form_builder_get_transforms().
+ */
 function islandora_pydio_bridge_islandora_xml_form_builder_get_transforms() {
   $module_path = drupal_get_path('module', 'islandora_pydio_bridge');
   return array(
