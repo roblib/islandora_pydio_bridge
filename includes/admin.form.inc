@@ -2,11 +2,11 @@
 
 /**
  * @file
- * Form handling for the administration of Simon Fraser University.
+ * Form handling for the administration of Islandora Pydio Bridge.
  */
 
 /**
- * Defines the Simon Fraser University admin form.
+ * Defines the Islandora Pydio Bridge admin form.
  *
  * @param array $form
  *   An array representing a Drupal form.

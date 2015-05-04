@@ -48,26 +48,28 @@ function islandora_pydio_bridge_menu() {
 function islandora_pydio_bridge_islandora_required_objects(IslandoraTuque $connection) {
   $module_path = drupal_get_path('module', 'islandora');
   // Root Collection.
-  $root_collection = $connection->repository->constructObject('islandora:pydio_data_top');
-  $root_collection->owner = 'fedoraAdmin';
-  $root_collection->label = 'Research Data Collections';
-  $root_collection->models = 'islandora:collectionCModel';
+  $pydio_data_collection = $connection->repository->constructObject('islandora:pydio_data_top');
+  $pydio_data_collection->owner = 'fedoraAdmin';
+  $pydio_data_collection->label = 'Research Data Collections';
+  $pydio_data_collection->models = 'islandora:collectionCModel';
   // Collection Policy Datastream.
-  $datastream = $root_collection->constructDatastream('COLLECTION_POLICY', 'X');
+  $datastream = $pydio_data_collection->constructDatastream('COLLECTION_POLICY', 'X');
   $datastream->label = 'Collection policy';
   $datastream->mimetype = 'text/xml';
   $datastream->setContentFromFile("$module_path/xml/islandora_collection_policy.xml", FALSE);
-  $root_collection->ingestDatastream($datastream);
+  $pydio_data_collection->ingestDatastream($datastream);
+  // Add to root collection
+  $pydio_data_collection->relationships->add(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', 'islandora:root');
   // TN Datastream.
-  $datastream = $root_collection->constructDatastream('TN', 'M');
+  $datastream = $pydio_data_collection->constructDatastream('TN', 'M');
   $datastream->label = 'Thumbnail';
   $datastream->mimetype = 'image/png';
   $datastream->setContentFromFile("$module_path/images/folder.png", FALSE);
-  $root_collection->ingestDatastream($datastream);
+  $pydio_data_collection->ingestDatastream($datastream);
   return array(
     'islandora_pydio_bridge' => array(
       'title' => 'Islandora Pydio Bridge Data Collection',
-      'objects' => array($root_collection),
+      'objects' => array($pydio_data_collection),
     ),
   );
 }
@@ -76,12 +78,13 @@ function islandora_pydio_bridge_user_view($account, $view_mode) {
   $collection_pid = empty($account->data['islandora_pydio_bridge_person_data_collection']) ? NULL :
     $account->data['islandora_pydio_bridge_person_data_collection'];
   if (!empty($collection_pid)) {
+    $collection_link = l($collection_pid, "islandora/object/$collection_pid");
     $account->content['islandora_pydio_bridge_user_collection'] = array(
       '#type' => 'user_profile_category',
       '#title' => 'Personal Research Data Collection',
       'research_data_collection' => array(
-        '#markup' => t("Your Personal Data Collection ID is '%collection_pid' and your account user id is '@uid'.",
-          array('%collection_pid' => $collection_pid, '@uid' => $account->uid)),
+        '#markup' => t("Your Personal Data Collection ID is !collection_pid.",
+          array('!collection_pid' => $collection_link)),
         '#type' => 'user_profile_item',
         '#title' => 'Personal Collection ID',
       ),
@@ -91,12 +94,13 @@ function islandora_pydio_bridge_user_view($account, $view_mode) {
   $entity_pid = empty($account->data['islandora_pydio_bridge_person_entity']) ? NULL :
     $account->data['islandora_pydio_bridge_person_entity'];
   if (!empty($entity_pid)) {
+    $entity_link = l($entity_pid, "islandora/object/$entity_pid");
     $account->content['islandora_pydio_bridge_person_entity'] = array(
       '#type' => 'user_profile_category',
       '#title' => 'Personal Entity Object',
       'entity_data_object' => array(
-        '#markup' => t("Your Entity Object ID is '%entity_pid'.",
-          array('%entity_pid' => $entity_pid)),
+        '#markup' => t("Your Entity Object ID is !entity_pid.",
+          array('!entity_pid' => $entity_link)),
         '#type' => 'user_profile_item',
         '#title' => 'Personal Entity ID',
       ),

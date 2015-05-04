@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Handles creation of a users Islandore data collection and Entity object.
+ */
 
 /**
  * Creates a basic object ready for ingest or adding additional datastreams.
