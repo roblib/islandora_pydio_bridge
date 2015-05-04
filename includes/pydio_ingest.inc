@@ -348,10 +348,10 @@ function islandora_pydio_bridge_ingest_object_batch($form, $form_state, &$contex
 function islandora_pydio_bridge_ingest_object_finished($success, $results, $operations) {
   if ($success) {
     global $user;
-    $root_collection = empty($user->data['islandora_pydio_bridge_person_data_collection']) ?
+    $pydio_data_collection = empty($user->data['islandora_pydio_bridge_person_data_collection']) ?
       variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
       $user->data['islandora_pydio_bridge_person_data_collection'];
-    drupal_goto('islandora');
+    drupal_goto("islandora/object/$pydio_data_collection");
   }
 }
 
@@ -392,11 +392,11 @@ function islandora_pydio_bridge_update_object_batch($form, $form_state, $update_
 function islandora_pydio_bridge_update_object_finished($success, $results, $operations) {
   if ($success) {
     global $user;
-    $root_collection = empty($user->data['islandora_pydio_bridge_person_data_collection']) ?
+    $pydio_data_collection = empty($user->data['islandora_pydio_bridge_person_data_collection']) ?
       variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
       $user->data['islandora_pydio_bridge_person_data_collection'];
     // TODO fix this
-    drupal_goto('islandora');
+    drupal_goto("islandora/object/$pydio_data_collection");
   }
 }
 
