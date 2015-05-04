@@ -55,7 +55,7 @@ function islandora_pydio_bridge_create_basic_object($account, $content_models, $
  */
 function islandora_pydio_bridge_create_user_subcollection($account){
   $content_models = array("islandora:collectionCModel");
-  $parent_collection = variable_get("islandora_pydio_bridge_repository_bridge", "islandora:pydio_data_top");
+  $parent_collection = variable_get("islandora_pydio_bridge_repository_pid", "islandora:pydio_data_top");
   $relationships = array(array(
     'relationship' => 'isMemberOfCollection',
     'pid' => $parent_collection
