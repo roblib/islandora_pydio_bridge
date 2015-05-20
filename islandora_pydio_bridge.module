@@ -124,7 +124,7 @@ function islandora_pydio_bridge_user_view($account, $view_mode) {
  */
 function islandora_pydio_bridge_user_login(&$edit, $account) {
   module_load_include('inc', 'islandora_pydio_bridge', 'includes/person');
-  if (empty($account->data['islandora_pydio_bridge_personal_collection'])) {
+  if (empty($account->data['islandora_pydio_bridge_person_entity'])) {
     try {
       $person_object = islandora_pydio_bridge_create_person($account);
     }

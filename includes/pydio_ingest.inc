@@ -559,7 +559,7 @@ function islandora_pydio_bridge_ingest_create_obj_datastream(&$form, &$form_stat
   $obj_ds->mimeType = $obj_mimetype;
   $obj_ds->setContentFromFile($file_info->uri, FALSE);
   $new_object->ingestDatastream($obj_ds);
-
+  // TODO fix this as it will always return NULL as $temp_file_path is never used
   return $temp_file_path;
 }
 

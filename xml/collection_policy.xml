@@ -1,0 +1,32 @@
+
+<collection_policy xmlns="http://www.islandora.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="" xsi:schemaLocation="http://www.islandora.ca http://syn.lib.umanitoba.ca/collection_policy.xsd">
+  <content_models>
+    <content_model dsid="" name="Islandora Video Content Model" namespace="FAKENAMESPACE" pid="islandora:sp_videoCModel"></content_model>
+    <content_model dsid="" name="Islandora Basic Image Content Model" namespace="FAKENAMESPACE" pid="islandora:sp_basic_image"></content_model>
+    <content_model dsid="" name="Islandora Newspaper Content Model" namespace="FAKENAMESPACE" pid="islandora:newspaperCModel"></content_model>
+    <content_model dsid="" name="Islandora Collection Content Model" namespace="FAKENAMESPACE" pid="islandora:collectionCModel"></content_model>
+    <content_model dsid="" name="Islandora Binary Object Content Model" namespace="FAKENAMESPACE" pid="islandora:binaryObjectCModel"></content_model>
+    <content_model dsid="" name="Islandora PDF Content Model" namespace="FAKENAMESPACE" pid="islandora:sp_pdf"></content_model>
+    <content_model dsid="" name="Islandora Internet Archive Book Content Model" namespace="FAKENAMESPACE" pid="islandora:bookCModel"></content_model>
+    <content_model dsid="" name="Islandora Page Content Model" namespace="FAKENAMESPACE" pid="islandora:pageCModel"></content_model>
+    <content_model dsid="" name="Citation Content Model" namespace="FAKENAMESPACE" pid="ir:citationCModel"></content_model>
+    <content_model dsid="" name="Thesis Content Model" namespace="FAKENAMESPACE" pid="ir:thesisCModel"></content_model>
+    <content_model dsid="" name="Islandora Newspaper Page Content Model" namespace="FAKENAMESPACE" pid="islandora:newspaperPageCModel"></content_model>
+    <content_model dsid="" name="Islandora Annotation CModel" namespace="FAKENAMESPACE" pid="islandora:OACCModel"></content_model>
+    <content_model dsid="" name="Islandora Large Image Content Model" namespace="FAKENAMESPACE" pid="islandora:sp_large_image_cmodel"></content_model>
+    <content_model dsid="" name="Islandora Audio Content Model" namespace="FAKENAMESPACE" pid="islandora:sp-audioCModel"></content_model>
+    <content_model dsid="" name="Islandora Web ARChive Content Model" namespace="FAKENAMESPACE" pid="islandora:sp_web_archive"></content_model>
+    <content_model dsid="" name="Islandora Compound Object Content Model" namespace="FAKENAMESPACE" pid="islandora:compoundCModel"></content_model>
+    <content_model dsid="" name="Islandora Newspaper Issue Content Model" namespace="FAKENAMESPACE" pid="islandora:newspaperIssueCModel"></content_model>
+    <content_model dsid="" name="Islandora Miscellaneous File Format Content Model" namespace="FAKENAMESPACE" pid="sfu:genericCModel"></content_model>
+    <content_model dsid="" name="Islandora Miscellaneous File Format Content Model" namespace="FAKENAMESPACE" pid="ipb:genericCModel"></content_model>
+    <content_model dsid="" name="Islandora Entity Content Model" namespace="FAKENAMESPACE" pid="islandora:entityCModel"></content_model>
+    <content_model dsid="" name="Islandora Place Content Model" namespace="FAKENAMESPACE" pid="islandora:placeCModel"></content_model>
+    <content_model dsid="" name="Islandora Person Content Model" namespace="FAKENAMESPACE" pid="islandora:personCModel"></content_model>
+    <content_model dsid="" name="Islandora Event Content Model" namespace="FAKENAMESPACE" pid="islandora:eventCModel"></content_model>
+    <content_model dsid="" name="Islandora Organization Content Model" namespace="FAKENAMESPACE" pid="islandora:organizationCModel"></content_model>
+  </content_models>
+  <search_terms></search_terms>
+  <staging_area></staging_area>
+  <relationship>isMemberOfCollection</relationship>
+</collection_policy>

@@ -76,7 +76,41 @@ function islandora_pydio_bridge_create_user_subcollection($account){
   $ds_text = str_ireplace("USERID", $account->name, $ds_text);
   $mods_ds->setContentFromString($ds_text);
   $object->ingestDatastream($mods_ds);
+  $collection_policy = islandora_pydio_bridge_get_collection_policy();
+  if(!empty($collection_policy)){
+    $cp_ds = $object->constructDatastream('COLLECTION_POLICY', 'M');
+    $cp_ds->label = 'COLLECTION POLICY';
+    $cp_ds->setContentFromString($collection_policy);
+    $object->ingestDatastream($cp_ds);
+  }
+  else {
+    watchdog("islandora_pydio_bridge", "Failed to add a Collection Policy
+     to %user Data Collection Object, %message", array(
+      "%user" => $account->name,
+      "%message" => "Could not find a suitable Collection Policy"
+    ), WATCHDOG_ERROR, NULL);
+  }
   return islandora_add_object($object);
+
+}
+
+/**
+ * Returns an Islandora Collection policy xml with an updated namespace.
+ *
+ * @return mixed|null|string
+ *   null if it can't load the default collection  policy or the collection
+ * policy string.
+ */
+function islandora_pydio_bridge_get_collection_policy(){
+  $path = drupal_get_path('module', 'islandora_pydio_bridge');
+  $file = $path . '/xml/collection_policy.xml';
+  $collection_policy = file_get_contents($file);
+  $namespace = variable_get('islandora_pydio_bridge_pid_namespace', 'pydio');
+  if(!empty($collection_policy)){
+    $collection_policy = str_replace('FAKENAMESPACE', $namespace, $collection_policy);
+    return $collection_policy;
+  }
+  return NULL;
 
 }
 
