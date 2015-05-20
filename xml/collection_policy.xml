@@ -11,13 +11,11 @@
     <content_model dsid="" name="Islandora Page Content Model" namespace="FAKENAMESPACE" pid="islandora:pageCModel"></content_model>
     <content_model dsid="" name="Citation Content Model" namespace="FAKENAMESPACE" pid="ir:citationCModel"></content_model>
     <content_model dsid="" name="Thesis Content Model" namespace="FAKENAMESPACE" pid="ir:thesisCModel"></content_model>
-    <content_model dsid="" name="Islandora Newspaper Page Content Model" namespace="FAKENAMESPACE" pid="islandora:newspaperPageCModel"></content_model>
     <content_model dsid="" name="Islandora Annotation CModel" namespace="FAKENAMESPACE" pid="islandora:OACCModel"></content_model>
     <content_model dsid="" name="Islandora Large Image Content Model" namespace="FAKENAMESPACE" pid="islandora:sp_large_image_cmodel"></content_model>
     <content_model dsid="" name="Islandora Audio Content Model" namespace="FAKENAMESPACE" pid="islandora:sp-audioCModel"></content_model>
     <content_model dsid="" name="Islandora Web ARChive Content Model" namespace="FAKENAMESPACE" pid="islandora:sp_web_archive"></content_model>
     <content_model dsid="" name="Islandora Compound Object Content Model" namespace="FAKENAMESPACE" pid="islandora:compoundCModel"></content_model>
-    <content_model dsid="" name="Islandora Newspaper Issue Content Model" namespace="FAKENAMESPACE" pid="islandora:newspaperIssueCModel"></content_model>
     <content_model dsid="" name="Islandora Miscellaneous File Format Content Model" namespace="FAKENAMESPACE" pid="sfu:genericCModel"></content_model>
     <content_model dsid="" name="Islandora Miscellaneous File Format Content Model" namespace="FAKENAMESPACE" pid="ipb:genericCModel"></content_model>
     <content_model dsid="" name="Islandora Entity Content Model" namespace="FAKENAMESPACE" pid="islandora:entityCModel"></content_model>
