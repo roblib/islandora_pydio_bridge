@@ -176,7 +176,8 @@ function islandora_pydio_bridge_user_login(&$edit, $account) {
  */
 function islandora_pydio_bridge_access_callback() {
   global $user;
-
+  // TODO update this so it gets the correct collection object from the drupal db (we now store each users own collection object
+  // in their drupal user object
   $object = islandora_object_load(variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top'));
   return in_array('authenticated user', $user->roles) && islandora_object_access(ISLANDORA_INGEST, $object, $user);
 }
@@ -188,7 +189,7 @@ function islandora_pydio_bridge_islandora_xml_form_builder_forms() {
   $module_path = drupal_get_path('module', 'islandora_pydio_bridge');
   return array(
     'Islandora Pydio Bridge DDI form' => array(
-      'form_file' => "$module_path/xml/DDI_final.xml",
+      'form_file' => "$module_path/xml/DDI-3.2-Lifecycle-Form.xml",
     ),
   );
 }
@@ -202,63 +203,63 @@ function islandora_pydio_bridge_islandora_content_model_forms_form_associations(
       'content_model' => 'islandora:binaryObjectCModel',
       'form_name' => 'Islandora Pydio Bridge DDI form',
       'dsid' => 'DDI',
-      'title_field' => array('stdyDscr', 'citation', 'titlStmt', 'titl'),
+      'title_field' => array('Citation', 'Title', 'Title-String'),
       'transform' => 'ddi_to_dc.xsl',
-      'self_transform' => 'cleanup_ddi.xsl',
+      //'self_transform' => 'cleanup_ddi.xsl',
       'template' => FALSE,
     ),
     'islandora_pydio_bridge_basic_image_form' => array(
       'content_model' => 'islandora:sp_basic_image',
       'form_name' => 'Islandora Pydio Bridge DDI form',
       'dsid' => 'DDI',
-      'title_field' => array('stdyDscr', 'citation', 'titlStmt', 'titl'),
+      'title_field' => array('Citation', 'Title', 'Title-String'),
       'transform' => 'ddi_to_dc.xsl',
-      'self_transform' => 'cleanup_ddi.xsl',
+      //'self_transform' => 'cleanup_ddi.xsl',
       'template' => FALSE,
     ),
     'islandora_pydio_bridge_large_image_form' => array(
       'content_model' => 'islandora:sp_large_image_cmodel',
       'form_name' => 'Islandora Pydio Bridge DDI form',
       'dsid' => 'DDI',
-      'title_field' => array('stdyDscr', 'citation', 'titlStmt', 'titl'),
+      'title_field' => array('Citation', 'Title', 'Title-String'),
       'transform' => 'ddi_to_dc.xsl',
-      'self_transform' => 'cleanup_ddi.xsl',
+      //'self_transform' => 'cleanup_ddi.xsl',
       'template' => FALSE,
     ),
     'islandora_pydio_bridge_pdf_form' => array(
       'content_model' => 'islandora:sp_pdf',
       'form_name' => 'Islandora Pydio Bridge DDI form',
       'dsid' => 'DDI',
-      'title_field' => array('stdyDscr', 'citation', 'titlStmt', 'titl'),
+      'title_field' => array('Citation', 'Title', 'Title-String'),
       'transform' => 'ddi_to_dc.xsl',
-      'self_transform' => 'cleanup_ddi.xsl',
+      //'self_transform' => 'cleanup_ddi.xsl',
       'template' => FALSE,
     ),
     'islandora_pydio_bridge_video_form' => array(
       'content_model' => 'islandora:sp_videoCModel',
       'form_name' => 'Islandora Pydio Bridge DDI form',
       'dsid' => 'DDI',
-      'title_field' => array('stdyDscr', 'citation', 'titlStmt', 'titl'),
+      'title_field' => array('Citation', 'Title', 'Title-String'),
       'transform' => 'ddi_to_dc.xsl',
-      'self_transform' => 'cleanup_ddi.xsl',
+      //'self_transform' => 'cleanup_ddi.xsl',
       'template' => FALSE,
     ),
     'islandora_pydio_bridge_audio_form' => array(
       'content_model' => 'islandora:sp-audioCModel',
       'form_name' => 'Islandora Pydio Bridge DDI form',
       'dsid' => 'DDI',
-      'title_field' => array('stdyDscr', 'citation', 'titlStmt', 'titl'),
+      'title_field' => array('Citation', 'Title', 'Title-String'),
       'transform' => 'ddi_to_dc.xsl',
-      'self_transform' => 'cleanup_ddi.xsl',
+      //'self_transform' => 'cleanup_ddi.xsl',
       'template' => FALSE,
     ),
     'islandora_pydio_bridge_data_form' => array(
       'content_model' => 'islandora:sp_data',
       'form_name' => 'Islandora Pydio Bridge DDI form',
       'dsid' => 'DDI',
-      'title_field' => array('stdyDscr', 'citation', 'titlStmt', 'titl'),
+      'title_field' => array('Citation', 'Title', 'Title-String'),
       'transform' => 'ddi_to_dc.xsl',
-      'self_transform' => 'cleanup_ddi.xsl',
+      //'self_transform' => 'cleanup_ddi.xsl',
       'template' => FALSE,
     ),
   );
@@ -277,9 +278,9 @@ function islandora_pydio_bridge_islandora_xml_form_builder_get_transforms() {
 /**
  * Implements hook_xml_form_builder_get_self_transforms().
  */
-function islandora_pydio_bridge_xml_form_builder_get_self_transforms() {
+/*function islandora_pydio_bridge_xml_form_builder_get_self_transforms() {
   $module_path = drupal_get_path('module', 'islandora_pydio_bridge');
   return array(
     'cleanup_ddi.xsl' => "$module_path/xml/cleanup_ddi.xsl",
   );
-}
+}     */

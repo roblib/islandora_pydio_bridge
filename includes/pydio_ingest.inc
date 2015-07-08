@@ -428,7 +428,8 @@ function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file
 
   // Depending if the the batch is a single file or folder, the title will be
   // either the form title or the file name.
-  $title = isset($file_info->file_name) ? $file_info->file_name : $form_state['values']['stdyDscr']['citation']['titlStmt']['titl'];
+  // TODO should get the path to the title from the form association
+  $title = isset($file_info->file_name) ? $file_info->file_name : $form_state['values']['Citation']['Title']['Title-String'];
 
   // Set the file name to be the file info file name or the pydio
   // file path.
@@ -544,23 +545,60 @@ function islandora_pydio_bridge_ingest_create_policy_datastream($new_object, $pa
  * @param object $new_object
  *   The new Object.
  *
- * @return string
- *   Returns the temporary file path of the downloaded file.
+ * @return bool
+ *   returns TRUE if the OBJ is added, FALSE otherwise
  */
 function islandora_pydio_bridge_ingest_create_obj_datastream(&$form, &$form_state, $new_object, $file_info) {
   module_load_include('inc', 'islandora', 'includes/mime_detect');
-
+  module_load_include('inc', 'clamav', 'clamav');
   $mime_detect = new MimeDetect();
   $obj_mimetype = $mime_detect->getMimetype($file_info->file_name);
+  $result = function_exists("clamav_scan_file") ? clamav_scan_file($file_info->uri) :
+    -1;// CLAMAV_SCANRESULT_UNCHECKED;
+  if($result == 0 || $result == -1) {
+    // Create the OBJ datastream.
+    $obj_ds = $new_object->constructDatastream('OBJ', 'M');
+    $obj_ds->label = $file_info->file_name;
+    $obj_ds->mimeType = $obj_mimetype;
+    $obj_ds->logMessage = islandora_pydio_bridge_create_log($result);
+    $obj_ds->setContentFromFile($file_info->uri, FALSE);
+    $new_object->logMessage = islandora_pydio_bridge_create_log($result);
+    $new_object->ingestDatastream($obj_ds);
+  } else {
+    drupal_set_message(t("Virus scan failed, cannot process %file_name.  OBJ datastream blocked",
+      array('%file_name' => $file_info->file_name)), 'error');
+    $new_object->logMessage = islandora_pydio_bridge_create_log($result);
+    return FALSE;
+  }
+  return TRUE;
+}
 
-  // Create the OBJ datastream.
-  $obj_ds = $new_object->constructDatastream('OBJ', 'M');
-  $obj_ds->label = $file_info->file_name;
-  $obj_ds->mimeType = $obj_mimetype;
-  $obj_ds->setContentFromFile($file_info->uri, FALSE);
-  $new_object->ingestDatastream($obj_ds);
-  // TODO fix this as it will always return NULL as $temp_file_path is never used
-  return $temp_file_path;
+function islandora_pydio_bridge_get_clamav_settings() {
+  $mode = variable_get('clamav_mode', CLAMAV_DEFAULT_MODE);
+  if (!empty($mode) && $mode == CLAMAV_USE_DAEMON) {
+    $settings = array(
+      'host' => variable_get('clamav_daemon_host', CLAMAV_DEFAULT_HOST),
+      'port' => variable_get('clamav_daemon_port', CLAMAV_DEFAULT_PORT),
+    );
+  } else {
+    $settings = variable_get('clamav_executable_path', CLAMAV_DEFAULT_PATH);
+  }
+  return $settings;
+}
+
+function islandora_pydio_bridge_create_log($result){
+  $settings = islandora_pydio_bridge_get_clamav_settings();
+  $clamav_version = function_exists("clamav_get_version") && !empty($settings) ?
+    clamav_get_version($settings) :
+    'no antivirus installed';
+  $return_value = "event type: virus check\n eventDateTime = " . date() . "\n";
+  if ($clamav_version == "no antivirus installed" || $result == -1){
+    return  $return_value . "eventDetail = Not scanned\n eventOutcome = No op";
+  } elseif ($result == 0) {
+    return $return_value . "eventDetail = program = \"ClamAv -clamscan\";version = \"$clamav_version\" \n eventOutcome = pass";
+  } else {
+    return $return_value . "eventDetail = program = \"ClamAv -clamscan\";version = \"$clamav_version\" \n eventOutcome = fail, OBJ datastream was blocked";
+  }
 }
 
 /**
@@ -575,14 +613,25 @@ function islandora_pydio_bridge_ingest_create_obj_datastream(&$form, &$form_stat
  * @param object $update_object
  *   The pid of the object to update.
  *
- * @return string
- *   Returns the temporary file path of the downloaded file.
  */
 function islandora_pydio_bridge_update_obj_datastream(&$form, &$form_state, $file_info, $update_object) {
-
   $pid = $update_object['pid'];
   $object = islandora_object_load($pid);
-  $object['OBJ']->setContentFromFile($file_info->uri, FALSE);
+  // an object may be missing the OBJ if it was blocked by a previous antivirus check so we may have to add it.
+  if(!isset($object['OBJ'])){
+    return islandora_pydio_bridge_update_obj_datastream($form, $form_state, $object, $file_info);
+  }
+  $result = function_exists("clamav_scan_file") ? clamav_scan_file($file_info->uri) : -1;
+  if($result == 0 || $result == -1) {
+    $object['OBJ']->logMessage = islandora_pydio_bridge_create_log($result);
+    $object['OBJ']->setContentFromFile($file_info->uri, FALSE);
+  } else {
+    drupal_set_message(t("Virus scan failed, cannot process %file_name.  OBJ datastream blocked",
+      array('%file_name' => $file_info->file_name)), 'error');
+    $object->logMessage = islandora_pydio_bridge_create_log($result);
+    return FALSE;
+  }
+  return TRUE;
 }
 
 /**
