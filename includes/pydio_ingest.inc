@@ -471,9 +471,17 @@ function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file
   // Add the pydio file path and repository id to RELS-EXT
   $repo_id = $form_state['storage']['pydio_params']['repo_id'];
   islandora_pydio_bridge_add_file_object_relationship($file_info->pydio_file_path, $repo_id, $new_object);
-
-  // Add object.
+    // Add object.
   islandora_add_object($new_object);
+  // Run the xslt transforms
+  module_load_include('inc', 'xml_forms', 'builder/includes/associations');
+  $transform = islandora_pydio_bridge_xml_form_builder_get_transforms();
+  // Transform the DDI to DC
+  $updated_dc = xml_form_builder_transform_document(DomDocument::load(drupal_realpath($transform['ddi_to_dc.xsl'])),
+    DOMDocument::loadXML($new_object['DDI']->content));
+  if(!empty($updated_dc)){
+    $new_object['DC']->setContentFromString($updated_dc->saveXML());
+  }
   // Return the new object pid.
   return $new_object->id;
 }

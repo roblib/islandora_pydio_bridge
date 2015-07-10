@@ -268,7 +268,7 @@ function islandora_pydio_bridge_islandora_content_model_forms_form_associations(
 /**
  * Implements hook_islandora_xml_form_builder_get_transforms().
  */
-function islandora_pydio_bridge_islandora_xml_form_builder_get_transforms() {
+function islandora_pydio_bridge_xml_form_builder_get_transforms() {
   $module_path = drupal_get_path('module', 'islandora_pydio_bridge');
   return array(
     'ddi_to_dc.xsl' => "$module_path/xml/ddi_to_dc.xsl",
@@ -278,9 +278,9 @@ function islandora_pydio_bridge_islandora_xml_form_builder_get_transforms() {
 /**
  * Implements hook_xml_form_builder_get_self_transforms().
  */
-/*function islandora_pydio_bridge_xml_form_builder_get_self_transforms() {
+function islandora_pydio_bridge_xml_form_builder_get_self_transforms() {
   $module_path = drupal_get_path('module', 'islandora_pydio_bridge');
   return array(
     'cleanup_ddi.xsl' => "$module_path/xml/cleanup_ddi.xsl",
   );
-}     */
+}

@@ -11,7 +11,7 @@
 				xmlns:xhtml="http://www.w3.org/1999/xhtml"
 				xmlns:a="ddi:archive:3_2"
 				xmlns:m1="ddi:physicaldataproduct/ncube/normal:3_2"
-				xmlns:ddi="ddi:instance:3_2 http://www.ddialliance.org/sites/default/files/schema/ddi3.2/instance.xsd"
+				xmlns:ddi="ddi:instance:3_2"
 				xmlns:m2="ddi:physicaldataproduct/ncube/tabular:3_2"
 				xmlns:l="ddi:logicalproduct:3_2"
 				xmlns:m3="ddi:physicaldataproduct/ncube/inline:3_2"
