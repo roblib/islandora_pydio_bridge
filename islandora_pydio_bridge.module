@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Module used to house customizations for Simon Fraser University.
+ * Module used to integrate Pydio and Islandora.
  */
 
 define('ISLANDORA_PYDIO_BRIDGE_INGEST_PATH', 'islandora_pydio_bridge/ingest');

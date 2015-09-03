@@ -39,7 +39,7 @@ function islandora_pydio_bridge_ingest() {
   $pids = islandora_pydio_bridge_object_check($file_path, $params['repo_id']);
   if ($pids && empty($params['pid_list'])) {
     if ($params['is_dir'] == 'true') {
-      drupal_set_message(t("Folders cannot be updated.  This will create a new collection."), "error");
+      drupal_set_message(t("Folders cannot be updated.  This will create a new collection."), "warning");
       return drupal_get_form('islandora_pydio_bridge_ingest_form', $params);
     }
     $params['pid_list'] = $pids;
@@ -436,7 +436,6 @@ function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file
   $file_info->file_name = isset($file_info->file_name) ? $file_info->file_name : $file_info->pydio_file_path;
   $content_model = isset($file_info->content_model) ? $file_info->content_model : islandora_pydio_bridge_get_content_model($file_info->file_name);
   $new_object = islandora_prepare_new_object(variable_get("islandora_pydio_bridge_pid_namespace", "pydio"), $title, array(), array($content_model), array(array('relationship' => 'isMemberOfCollection', 'pid' => $parent_collection)));
-
   // If the object is a file then add the OBJ and DDI datastream.
   if (isset($file_info->is_file) && $file_info->is_file == TRUE) {
     // Create OBJ datastream.
@@ -561,9 +560,9 @@ function islandora_pydio_bridge_ingest_create_obj_datastream(&$form, &$form_stat
   module_load_include('inc', 'clamav', 'clamav');
   $mime_detect = new MimeDetect();
   $obj_mimetype = $mime_detect->getMimetype($file_info->file_name);
-  $result = function_exists("clamav_scan_file") ? clamav_scan_file($file_info->uri) :
-    -1;// CLAMAV_SCANRESULT_UNCHECKED;
-  if($result == 0 || $result == -1) {
+  $result = islandora_pydio_bridge_scan($file_info->uri);
+  // Some sites may not have clamav installed as it is alpha only at this point.
+  if($result == CLAMAV_SCANRESULT_CLEAN || $result == CLAMAV_SCANRESULT_UNCHECKED) {
     // Create the OBJ datastream.
     $obj_ds = $new_object->constructDatastream('OBJ', 'M');
     $obj_ds->label = $file_info->file_name;
@@ -581,6 +580,39 @@ function islandora_pydio_bridge_ingest_create_obj_datastream(&$form, &$form_stat
   return TRUE;
 }
 
+/**
+ * Scan the file using clamav virus scanner.
+ *
+ * We have a soft dependancy on clamav as it is currently only alpha and some
+ * users may not want alpha modules in their stack.
+ *
+ * @param string $uri
+ *   The path to the file.
+ *
+ * @return int
+ *   The results of the scan.
+ */
+function islandora_pydio_bridge_scan($uri){
+  if(file_uri_scheme($uri) == "zip"){
+    // Copy the file so clamav can scan it.
+    $tmpfile = tempnam(sys_get_temp_dir(), 'pydio');
+    copy($uri, $tmpfile);
+    $result = function_exists("clamav_scan_file") ? clamav_scan_file(drupal_realpath($tmpfile)) :
+      CLAMAV_SCANRESULT_UNCHECKED;
+    unlink($tmpfile);
+  } else {
+    $result = function_exists("clamav_scan_file") ? clamav_scan_file(drupal_realpath($uri)) :
+      CLAMAV_SCANRESULT_UNCHECKED;
+  }
+  return $result;
+}
+
+/**
+ * Get the clamav settings..
+ *
+ * @return array|null
+ *   An array containing the clamav path or the host port for daemon mode
+ */
 function islandora_pydio_bridge_get_clamav_settings() {
   $mode = variable_get('clamav_mode', CLAMAV_DEFAULT_MODE);
   if (!empty($mode) && $mode == CLAMAV_USE_DAEMON) {
@@ -594,13 +626,22 @@ function islandora_pydio_bridge_get_clamav_settings() {
   return $settings;
 }
 
+/**
+ * Create a string to use in the audit trail.
+ *
+ * @param $result
+ *   the result of a clamav scan
+ *
+ * @return string
+ *   A string formatted as DCMI DCSV for use in the fedora objects audit trail
+ */
 function islandora_pydio_bridge_create_log($result){
   $settings = islandora_pydio_bridge_get_clamav_settings();
   $clamav_version = function_exists("clamav_get_version") && !empty($settings) ?
     clamav_get_version($settings) :
     'no antivirus installed';
-  $return_value = "event type: virus check\n eventDateTime = " . date() . "\n";
-  if ($clamav_version == "no antivirus installed" || $result == -1){
+  $return_value = "event type: virus check\n";
+  if ($clamav_version == "no antivirus installed" || $result == CLAMAV_SCANRESULT_UNCHECKED){
     return  $return_value . "eventDetail = Not scanned\n eventOutcome = No op";
   } elseif ($result == 0) {
     return $return_value . "eventDetail = program = \"ClamAv -clamscan\";version = \"$clamav_version\" \n eventOutcome = pass";
@@ -621,15 +662,16 @@ function islandora_pydio_bridge_create_log($result){
  * @param object $update_object
  *   The pid of the object to update.
  *
+ * @return bool
  */
 function islandora_pydio_bridge_update_obj_datastream(&$form, &$form_state, $file_info, $update_object) {
   $pid = $update_object['pid'];
   $object = islandora_object_load($pid);
   // an object may be missing the OBJ if it was blocked by a previous antivirus check so we may have to add it.
   if(!isset($object['OBJ'])){
-    return islandora_pydio_bridge_update_obj_datastream($form, $form_state, $object, $file_info);
+    return islandora_pydio_bridge_ingest_create_obj_datastream($form, $form_state, $object, $file_info);
   }
-  $result = function_exists("clamav_scan_file") ? clamav_scan_file($file_info->uri) : -1;
+  $result = islandora_pydio_bridge_scan($file_info->uri);
   if($result == 0 || $result == -1) {
     $object['OBJ']->logMessage = islandora_pydio_bridge_create_log($result);
     $object['OBJ']->setContentFromFile($file_info->uri, FALSE);
