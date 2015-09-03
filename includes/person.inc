@@ -5,6 +5,96 @@
  */
 
 /**
+ * Verify that the users entity and collection object exist in islandora/fedora.
+ *
+ * @param $account
+ *   The users drupal account object
+ */
+function islandora_pydio_bridge_verify_user_objects($account) {
+  $collection_pid = $account->data['islandora_pydio_bridge_person_data_collection'];
+  $person_collection_object = islandora_object_load($collection_pid);
+  if (FALSE === $person_collection_object) {
+    drupal_set_message(t("It looks like your Data collection was deleted, We will recreate it but some data may be lost!"));
+    islandora_pydio_bridge_create_user_collection($account, TRUE);
+  }
+  $person_pid = $account->data['islandora_pydio_bridge_person_entity'];
+  $person_entity_object = islandora_object_load($person_pid);
+  if (FALSE === $person_entity_object){
+    drupal_set_message(t("It looks like your Personal Entity object was deleted, We will recreate it but some data may be lost!"));
+    islandora_pydio_bridge_create_user_entity($account, TRUE);
+  }
+}
+
+/**
+ * Creates a collectionj  object in fedora and stores the pid in the drupal users account.
+ *
+ * @param $account
+ *   The drupal users account object
+ * @param bool|FALSE $force
+ *   If true force the creation of the object even if there is a pid stored in the drupal
+ *   users account.
+ */
+function islandora_pydio_bridge_create_user_collection($account, $force = FALSE){
+  if (empty($account->data['islandora_pydio_bridge_person_data_collection']) || $force == TRUE) {
+    try {
+      $person_collection_object = islandora_pydio_bridge_create_user_subcollection($account);
+    }
+    catch (Exception $e) {
+      watchdog("islandora_pydio_bridge", "Failed to create an Islandora
+    Data Collection for %user, %message", array(
+        "%user" => $account->name,
+        "%message" => $e->getMessage()
+      ), WATCHDOG_ERROR, NULL);
+    }
+
+    if (!empty($person_collection_object)) {
+      $person_collection_data = array('data' => array('islandora_pydio_bridge_person_data_collection' => $person_collection_object->id));
+      user_save($account, $person_collection_data);
+      watchdog("islandora_pydio_bridge", "Successfully created an Islandora
+    Data Collection for %user with Islandora id of %pid", array(
+        "%user" => $account->name,
+        "%pid" => $person_collection_object->id
+      ), WATCHDOG_INFO, NULL);
+    }
+  }
+}
+
+/**
+ * Creates the users Islandora Entity object and stores it's pid in the drupal users acount.
+ *
+ * @param $account
+ *   The drupal users account object
+ * @param bool|FALSE $force
+ *   If true force the creation of the object even if there is a pid stored in the drupal
+ *   users account.
+ */
+function islandora_pydio_bridge_create_user_entity($account, $force = FALSE){
+  if (empty($account->data['islandora_pydio_bridge_person_entity']) ||
+    $force == TRUE) {
+    try {
+      $person_object = islandora_pydio_bridge_create_person($account);
+    }
+    catch (Exception $e) {
+      watchdog("islandora_pydio_bridge", "Failed to create an Islandora Person
+    object for %user, %message", array(
+        "%user" => $account->name,
+        "%message" => $e->getMessage()
+      ), WATCHDOG_ERROR, NULL);
+    }
+    if (!empty($person_object)) {
+      $person_data = array('data' => array('islandora_pydio_bridge_person_entity' => $person_object->id));
+      user_save($account, $person_data);
+      watchdog("islandora_pydio_bridge", "Successfully created an Islandora Person
+    object for %user with Islandora id of %pid", array(
+        "%user" => $account->name,
+        "%pid" => $person_object->id
+      ), WATCHDOG_INFO, NULL);
+    }
+  }
+}
+
+
+/**
  * Creates a basic object ready for ingest or adding additional datastreams.
  *
  * Since we are calling some functions from the user_login hook we may not have

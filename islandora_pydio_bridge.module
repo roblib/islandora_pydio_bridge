@@ -124,52 +124,10 @@ function islandora_pydio_bridge_user_view($account, $view_mode) {
  */
 function islandora_pydio_bridge_user_login(&$edit, $account) {
   module_load_include('inc', 'islandora_pydio_bridge', 'includes/person');
-  if (empty($account->data['islandora_pydio_bridge_person_entity'])) {
-    try {
-      $person_object = islandora_pydio_bridge_create_person($account);
-    }
-    catch (Exception $e) {
-      watchdog("islandora_pydio_bridge", "Failed to create an Islandora Person
-    object for %user, %message", array(
-        "%user" => $account->name,
-        "%message" => $e->getMessage()
-      ), WATCHDOG_ERROR, NULL);
-    }
-    if (!empty($person_object)) {
-      $person_data = array('data' => array('islandora_pydio_bridge_person_entity' => $person_object->id));
-      user_save($account, $person_data);
-      watchdog("islandora_pydio_bridge", "Successfully created an Islandora Person
-    object for %user with Islandora id of %pid", array(
-        "%user" => $account->name,
-        "%pid" => $person_object->id
-      ), WATCHDOG_INFO, NULL);
-    }
-  }
-
-  if (empty($account->data['islandora_pydio_bridge_person_data_collection'])) {
-    try {
-      $person_collection_object = islandora_pydio_bridge_create_user_subcollection($account);
-    }
-    catch (Exception $e) {
-      watchdog("islandora_pydio_bridge", "Failed to create an Islandora
-    Data Collection for %user, %message", array(
-        "%user" => $account->name,
-        "%message" => $e->getMessage()
-      ), WATCHDOG_ERROR, NULL);
-    }
-
-    if (!empty($person_collection_object)) {
-      $person_collection_data = array('data' => array('islandora_pydio_bridge_person_data_collection' => $person_collection_object->id));
-      user_save($account, $person_collection_data);
-      watchdog("islandora_pydio_bridge", "Successfully created an Islandora
-    Data Collection for %user with Islandora id of %pid", array(
-        "%user" => $account->name,
-        "%pid" => $person_collection_object->id
-      ), WATCHDOG_INFO, NULL);
-    }
-  }
+  islandora_pydio_bridge_create_user_collection($account);
+  islandora_pydio_bridge_create_user_entity($account);
+  islandora_pydio_bridge_verify_user_objects($account);
 }
-
 
 /**
  * Menu access callback.
