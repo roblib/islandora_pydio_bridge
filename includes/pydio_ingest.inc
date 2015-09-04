@@ -429,7 +429,7 @@ function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file
   // Depending if the the batch is a single file or folder, the title will be
   // either the form title or the file name.
   // TODO should get the path to the title from the form association
-  $title = isset($file_info->file_name) ? $file_info->file_name : $form_state['values']['Citation']['Title']['Title-String'];
+  $title = isset($file_info->file_name) ? $file_info->file_name : $form_state['values']['StudyUnit']['Citation']['Title']['Title-String'];
 
   // Set the file name to be the file info file name or the pydio
   // file path.

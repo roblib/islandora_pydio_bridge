@@ -147,7 +147,7 @@ function islandora_pydio_bridge_islandora_xml_form_builder_forms() {
   $module_path = drupal_get_path('module', 'islandora_pydio_bridge');
   return array(
     'Islandora Pydio Bridge DDI form' => array(
-      'form_file' => "$module_path/xml/DDI-3.2-Lifecycle-Form.xml",
+      'form_file' => "$module_path/xml/Simplified-DDI-3.2-Lifecycle-Form.xml",
     ),
   );
 }

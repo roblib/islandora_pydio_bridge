@@ -26,7 +26,7 @@ function islandora_pydio_bridge_verify_user_objects($account) {
 }
 
 /**
- * Creates a collectionj  object in fedora and stores the pid in the drupal users account.
+ * Creates a collection object in fedora and stores the pid in the drupal users account.
  *
  * @param $account
  *   The drupal users account object
