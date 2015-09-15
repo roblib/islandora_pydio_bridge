@@ -17,6 +17,7 @@ This module requires the following modules/libraries:
 * [Islandora](https://github.com/islandora/islandora)
 * [Tuque](https://github.com/islandora/tuque)
 * [ImageMagick](https://drupal.org/project/imagemagick)
+* [islandora Xacml api](https://github.com/Islandora/islandora_xacml_editor)
 
 *To successfully create derivative data streams ImageMagick (for TN & JPG) needs to be installed on the server.*
 

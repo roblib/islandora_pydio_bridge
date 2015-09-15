@@ -67,16 +67,6 @@ function islandora_pydio_bridge_ingest_form($form, &$form_state, $params) {
   $form_name = "Islandora Pydio Bridge DDI form";
   $form = xml_form_builder_get_form($form, $form_state, $form_name);
 
-  $form['restrict_options'] = array(
-    '#type' => 'radios',
-    '#title' => t("Is this publication restricted?"),
-    '#default_value' => 'not_restricted',
-    '#options' => array(
-      'not_restricted' => t("No restriction"),
-      'embargo' => t('Use embargo'),
-    ),
-  );
-
   $form['embargo_duration'] = array(
     '#type' => 'radios',
     '#tree' => TRUE,
@@ -87,8 +77,8 @@ function islandora_pydio_bridge_ingest_form($form, &$form_state, $params) {
       'finite' => t('Embargo until date specified'),
     ),
     '#states' => array(
-      'visible' => array(
-        ':input[name=restrict_options]' => array('value' => 'embargo'),
+      'visible' => array(        
+        ':input[name="StudyUnit[Archive][ArchiveSpecific][DefaultAccess][AccessConditions][AccessLevel]"]' => array('value' => 'Embargoed'),
       ),
     ),
     '#default_value' => 'indefinite',
@@ -99,7 +89,7 @@ function islandora_pydio_bridge_ingest_form($form, &$form_state, $params) {
     '#description' => t('The date until which this item should be embargoed (we will check with you on this date to confirm that it is ready for release)'),
     '#states' => array(
       'visible' => array(
-        ':input[name=restrict_options]' => array('value' => 'embargo'),
+        ':input[name="StudyUnit[Archive][ArchiveSpecific][DefaultAccess][AccessConditions][AccessLevel]"]' => array('value' => 'Embargoed'),
         ':input[name=embargo_duration]' => array('value' => 'finite'),
       ),
     ),
@@ -123,7 +113,7 @@ function islandora_pydio_bridge_ingest_form($form, &$form_state, $params) {
     '#options' => $options,
     '#states' => array(
       'visible' => array(
-        ':input[name=restrict_options]' => array('value' => 'xacml'),
+        ':input[name="StudyUnit[Archive][ArchiveSpecific][DefaultAccess][AccessConditions][AccessLevel]"]' => array('value' => 'Embargoed'),
       ),
     ),
   );

@@ -74,6 +74,9 @@ function islandora_pydio_bridge_islandora_required_objects(IslandoraTuque $conne
   );
 }
 
+/**
+ * Implements hook_user_view()
+ */
 function islandora_pydio_bridge_user_view($account, $view_mode) {
   $collection_pid = empty($account->data['islandora_pydio_bridge_person_data_collection']) ? NULL :
     $account->data['islandora_pydio_bridge_person_data_collection'];
@@ -110,7 +113,7 @@ function islandora_pydio_bridge_user_view($account, $view_mode) {
 }
 
 /**
- * Implements user_login hook.
+ * Implements hook_user_login().
  *
  * If you user logs in and does not have a corresponding Islandora personCModel
  * object we will create one.
