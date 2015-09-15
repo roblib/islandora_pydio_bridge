@@ -153,7 +153,6 @@ function islandora_pydio_bridge_ingest_form_validate(&$form, &$form_state) {
   $date = $form_state['values']['embargo_date'];
   $time_now = time();
   $parsed = strtotime($date);
-  //$form_state['values']['StudyUnit']['Citation']['Title']['Title-String'];
   if ($form_state['values']['StudyUnit']['Archive']['ArchiveSpecific']
       ['DefaultAccess']['AccessConditions']['AccessLevel'] == 'embargo' && 
         $form_state['values']['embargo_duration'] == 'finite') {
@@ -439,9 +438,11 @@ function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file
   if ($content_model == 'islandora:collectionCModel') {
     islandora_pydio_bridge_ingest_create_policy_datastream($new_object, $parent_collection);
   }
-  // Add embargo to this object.
-  if (isset($form_state['values']['restrict_options']) &&
-      $form_state['values']['restrict_options'] == 'embargo') {
+   // Add embargo to this object.
+  if (isset($form_state['values']['StudyUnit']['Archive']['ArchiveSpecific']
+      ['DefaultAccess']['AccessConditions']['AccessLevel']) &&
+      $form_state['values']['StudyUnit']['Archive']['ArchiveSpecific']
+      ['DefaultAccess']['AccessConditions']['AccessLevel'] == 'Embargoed') {
     if (isset($form_state['values']['embargo_date']) &&
         isset($form_state['values']['embargo_duration']) &&
         $form_state['values']['embargo_duration'] == 'finite') {
