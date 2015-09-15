@@ -153,7 +153,10 @@ function islandora_pydio_bridge_ingest_form_validate(&$form, &$form_state) {
   $date = $form_state['values']['embargo_date'];
   $time_now = time();
   $parsed = strtotime($date);
-  if ($form_state['values']['restrict_options'] == 'embargo' && $form_state['values']['embargo_duration'] == 'finite') {
+  //$form_state['values']['StudyUnit']['Citation']['Title']['Title-String'];
+  if ($form_state['values']['StudyUnit']['Archive']['ArchiveSpecific']
+      ['DefaultAccess']['AccessConditions']['AccessLevel'] == 'embargo' && 
+        $form_state['values']['embargo_duration'] == 'finite') {
     if ($parsed <= $time_now) {
       form_set_error('embargo_date', t('You cannot specify a date in the past!'));
       $newembargo = array();
@@ -418,7 +421,6 @@ function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file
 
   // Depending if the the batch is a single file or folder, the title will be
   // either the form title or the file name.
-  // TODO should get the path to the title from the form association
   $title = isset($file_info->file_name) ? $file_info->file_name : $form_state['values']['StudyUnit']['Citation']['Title']['Title-String'];
 
   // Set the file name to be the file info file name or the pydio
