@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Handles creation of a users Islandore data collection and Entity object.
@@ -19,7 +20,7 @@ function islandora_pydio_bridge_verify_user_objects($account) {
   }
   $person_pid = $account->data['islandora_pydio_bridge_person_entity'];
   $person_entity_object = islandora_object_load($person_pid);
-  if (FALSE === $person_entity_object){
+  if (FALSE === $person_entity_object) {
     drupal_set_message(t("It looks like your Personal Entity object was deleted, We will recreate it but some data may be lost!"));
     islandora_pydio_bridge_create_user_entity($account, TRUE);
   }
@@ -34,17 +35,16 @@ function islandora_pydio_bridge_verify_user_objects($account) {
  *   If true force the creation of the object even if there is a pid stored in the drupal
  *   users account.
  */
-function islandora_pydio_bridge_create_user_collection($account, $force = FALSE){
+function islandora_pydio_bridge_create_user_collection($account, $force = FALSE) {
   if (empty($account->data['islandora_pydio_bridge_person_data_collection']) || $force == TRUE) {
     try {
       $person_collection_object = islandora_pydio_bridge_create_user_subcollection($account);
-    }
-    catch (Exception $e) {
+    } catch (Exception $e) {
       watchdog("islandora_pydio_bridge", "Failed to create an Islandora
     Data Collection for %user, %message", array(
         "%user" => $account->name,
         "%message" => $e->getMessage()
-      ), WATCHDOG_ERROR, NULL);
+          ), WATCHDOG_ERROR, NULL);
     }
 
     if (!empty($person_collection_object)) {
@@ -54,7 +54,7 @@ function islandora_pydio_bridge_create_user_collection($account, $force = FALSE)
     Data Collection for %user with Islandora id of %pid", array(
         "%user" => $account->name,
         "%pid" => $person_collection_object->id
-      ), WATCHDOG_INFO, NULL);
+          ), WATCHDOG_INFO, NULL);
     }
   }
 }
@@ -68,18 +68,17 @@ function islandora_pydio_bridge_create_user_collection($account, $force = FALSE)
  *   If true force the creation of the object even if there is a pid stored in the drupal
  *   users account.
  */
-function islandora_pydio_bridge_create_user_entity($account, $force = FALSE){
+function islandora_pydio_bridge_create_user_entity($account, $force = FALSE) {
   if (empty($account->data['islandora_pydio_bridge_person_entity']) ||
-    $force == TRUE) {
+      $force == TRUE) {
     try {
       $person_object = islandora_pydio_bridge_create_person($account);
-    }
-    catch (Exception $e) {
+    } catch (Exception $e) {
       watchdog("islandora_pydio_bridge", "Failed to create an Islandora Person
     object for %user, %message", array(
         "%user" => $account->name,
         "%message" => $e->getMessage()
-      ), WATCHDOG_ERROR, NULL);
+          ), WATCHDOG_ERROR, NULL);
     }
     if (!empty($person_object)) {
       $person_data = array('data' => array('islandora_pydio_bridge_person_entity' => $person_object->id));
@@ -88,11 +87,10 @@ function islandora_pydio_bridge_create_user_entity($account, $force = FALSE){
     object for %user with Islandora id of %pid", array(
         "%user" => $account->name,
         "%pid" => $person_object->id
-      ), WATCHDOG_INFO, NULL);
+          ), WATCHDOG_INFO, NULL);
     }
   }
 }
-
 
 /**
  * Creates a basic object ready for ingest or adding additional datastreams.
@@ -110,16 +108,15 @@ function islandora_pydio_bridge_create_user_entity($account, $force = FALSE){
  * @return \AbstractObject
  *   An object ready for ingest.
  */
-function islandora_pydio_bridge_create_basic_object($account, $content_models, $relationships, $label){
+function islandora_pydio_bridge_create_basic_object($account, $content_models, $relationships, $label) {
   module_load_include('inc', 'islandora', 'includes/utilities');
   $url = variable_get('islandora_base_url', 'http://localhost:8080/fedora');
   // user may not be bootstrapped yet so get the info from the account, can't use islandora_prepare_object as we may still be anonymous
   $username = $account->name;
-  $password= $account->pass;
+  $password = $account->pass;
   $connection = new RepositoryConnection($url, $username, $password);
   $repository = new FedoraRepository(
-    new FedoraApi($connection),
-    new SimpleCache()
+      new FedoraApi($connection), new SimpleCache()
   );
   $object = $repository->constructObject(variable_get('islandora_pydio_bridge_pid_namespace', 'pydio'));
   $object->owner = $account->name;
@@ -143,16 +140,15 @@ function islandora_pydio_bridge_create_basic_object($account, $content_models, $
  * @return FedoraObject
  *   An islandora FedoraObject
  */
-function islandora_pydio_bridge_create_user_subcollection($account){
+function islandora_pydio_bridge_create_user_subcollection($account) {
   $content_models = array("islandora:collectionCModel");
   $parent_collection = variable_get("islandora_pydio_bridge_repository_pid", "islandora:pydio_data_top");
   $relationships = array(array(
-    'relationship' => 'isMemberOfCollection',
-    'pid' => $parent_collection
+      'relationship' => 'isMemberOfCollection',
+      'pid' => $parent_collection
   ));
   $label = $account->name . " Data Collection";
-  $object = islandora_pydio_bridge_create_basic_object($account, $content_models,
-    $relationships, $label);
+  $object = islandora_pydio_bridge_create_basic_object($account, $content_models, $relationships, $label);
 
   $xacml = new IslandoraXacml($object);
   $xacml->viewingRule->addUser(array($object->owner, 'admin'));
@@ -167,7 +163,7 @@ function islandora_pydio_bridge_create_user_subcollection($account){
   $mods_ds->setContentFromString($ds_text);
   $object->ingestDatastream($mods_ds);
   $collection_policy = islandora_pydio_bridge_get_collection_policy();
-  if(!empty($collection_policy)){
+  if (!empty($collection_policy)) {
     $cp_ds = $object->constructDatastream('COLLECTION_POLICY', 'M');
     $cp_ds->label = 'COLLECTION POLICY';
     $cp_ds->setContentFromString($collection_policy);
@@ -178,10 +174,9 @@ function islandora_pydio_bridge_create_user_subcollection($account){
      to %user Data Collection Object, %message", array(
       "%user" => $account->name,
       "%message" => "Could not find a suitable Collection Policy"
-    ), WATCHDOG_ERROR, NULL);
+        ), WATCHDOG_ERROR, NULL);
   }
   return islandora_add_object($object);
-
 }
 
 /**
@@ -191,17 +186,16 @@ function islandora_pydio_bridge_create_user_subcollection($account){
  *   null if it can't load the default collection  policy or the collection
  * policy string.
  */
-function islandora_pydio_bridge_get_collection_policy(){
+function islandora_pydio_bridge_get_collection_policy() {
   $path = drupal_get_path('module', 'islandora_pydio_bridge');
   $file = $path . '/xml/collection_policy.xml';
   $collection_policy = file_get_contents($file);
   $namespace = variable_get('islandora_pydio_bridge_pid_namespace', 'pydio');
-  if(!empty($collection_policy)){
+  if (!empty($collection_policy)) {
     $collection_policy = str_replace('FAKENAMESPACE', $namespace, $collection_policy);
     return $collection_policy;
   }
   return NULL;
-
 }
 
 /**
@@ -218,12 +212,11 @@ function islandora_pydio_bridge_create_person($account) {
   $content_models = array("islandora:entityCModel", "islandora:personCModel");
   $parent_collection = variable_get("islandora_entities_people_collection", "islandora:entity_collection");
   $relationships = array(array(
-    'relationship' => 'isMemberOfCollection',
-    'pid' => $parent_collection
+      'relationship' => 'isMemberOfCollection',
+      'pid' => $parent_collection
   ));
 
-  $object = islandora_pydio_bridge_create_basic_object($account, $content_models,
-    $relationships, $account->name);
+  $object = islandora_pydio_bridge_create_basic_object($account, $content_models, $relationships, $account->name);
 
   $xacml = new IslandoraXacml($object);
   $xacml->viewingRule->addUser(array($object->owner, 'admin'));
@@ -239,7 +232,6 @@ function islandora_pydio_bridge_create_person($account) {
   $object->ingestDatastream($mads_ds);
   return islandora_add_object($object);
 }
-
 
 /**
  * Returns a MADS string template.

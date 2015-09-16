@@ -91,7 +91,7 @@ function islandora_pydio_bridge_ingest_form($form, &$form_state, $params) {
       'finite' => t('Embargo until date specified'),
     ),
     '#states' => array(
-      'visible' => array(        
+      'visible' => array(
         ':input[name=restrict_options]' => array('value' => 'Embargoed'),
       ),
     ),
@@ -192,9 +192,8 @@ function islandora_pydio_bridge_ingest_form_submit(&$form, &$form_state) {
   // Get the pydio params.
   $params = $form_state['storage']['pydio_params'];
   //Populate the hidden form element (if it exists) so we get this in the DDI
-  if(isset($form_state['values']['StudyUnit']['Archive']['ArchiveSpecific']['DefaultAccess']['AccessConditions']['AccessLevel'])){
-  $form_state['values']['StudyUnit']['Archive']['ArchiveSpecific']['DefaultAccess']['AccessConditions']['AccessLevel'] =
-      $form_state['values']['restrict_options'];
+  if (isset($form_state['values']['StudyUnit']['Archive']['ArchiveSpecific']['DefaultAccess']['AccessConditions']['AccessLevel'])) {
+    $form_state['values']['StudyUnit']['Archive']['ArchiveSpecific']['DefaultAccess']['AccessConditions']['AccessLevel'] = $form_state['values']['restrict_options'];
   }
   $download_url = "";
   if (isset($form_state['storage']['download_url'])) {
@@ -304,7 +303,7 @@ function islandora_pydio_bridge_update_form_submit(&$form, &$form_state) {
   $batch = array(
     'operations' => array(
       array('islandora_pydio_bridge_download_file_data', array(
-        $params, $download_url)),
+          $params, $download_url)),
       array('islandora_pydio_bridge_update_object_batch',
         array($form, $form_state, $update_list)),
     ),
@@ -342,7 +341,7 @@ function islandora_pydio_bridge_ingest_object_batch($form, $form_state, &$contex
 
   $pid = islandora_pydio_bridge_ingest_single_object($form, $form_state, $files[$offset], $result);
   $result['islandora_batch_ingest_object'][$files[$offset]->pydio_file_path] = $pid;
-  $sandbox['offset']++;
+  $sandbox['offset'] ++;
 
   if ($sandbox['offset'] >= $sandbox['total']) {
     file_unmanaged_delete($context['results']['files']);
@@ -358,8 +357,8 @@ function islandora_pydio_bridge_ingest_object_finished($success, $results, $oper
   if ($success) {
     global $user;
     $pydio_data_collection = empty($user->data['islandora_pydio_bridge_person_data_collection']) ?
-      variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
-      $user->data['islandora_pydio_bridge_person_data_collection'];
+        variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
+        $user->data['islandora_pydio_bridge_person_data_collection'];
     drupal_goto("islandora/object/$pydio_data_collection");
   }
 }
@@ -386,7 +385,7 @@ function islandora_pydio_bridge_update_object_batch($form, $form_state, $update_
   $offset = $sandbox['offset'];
 
   islandora_pydio_bridge_update_obj_datastream($form, $form_state, $file, $update_list[$offset]);
-  $sandbox['offset']++;
+  $sandbox['offset'] ++;
 
   if ($sandbox['offset'] >= $sandbox['total']) {
     file_unmanaged_delete($context['results']['files']);
@@ -402,8 +401,8 @@ function islandora_pydio_bridge_update_object_finished($success, $results, $oper
   if ($success) {
     global $user;
     $pydio_data_collection = empty($user->data['islandora_pydio_bridge_person_data_collection']) ?
-      variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
-      $user->data['islandora_pydio_bridge_person_data_collection'];
+        variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
+        $user->data['islandora_pydio_bridge_person_data_collection'];
     // TODO fix this
     drupal_goto("islandora/object/$pydio_data_collection");
   }
@@ -426,8 +425,8 @@ function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file
   global $user;
   module_load_include('inc', 'islandora', 'includes/utilities');
   $parent_collection = empty($user->data['islandora_pydio_bridge_person_data_collection']) ?
-    variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
-    $user->data['islandora_pydio_bridge_person_data_collection'];
+      variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
+      $user->data['islandora_pydio_bridge_person_data_collection'];
 
   // If the parent collection is not islandora_pydio_bridge root or the users own collection then find the pid of the
   // parent collection.
@@ -455,7 +454,7 @@ function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file
   if ($content_model == 'islandora:collectionCModel') {
     islandora_pydio_bridge_ingest_create_policy_datastream($new_object, $parent_collection);
   }
-   // Add embargo to this object.
+  // Add embargo to this object.
   if (isset($form_state['values']['restrict_options']) &&
       $form_state['values']['restrict_options'] == 'Embargoed') {
     if (isset($form_state['values']['embargo_date']) &&
@@ -474,19 +473,18 @@ function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file
       $form_state['values']['restrict_options'] == 'xacml') {
     islandora_pydio_bridge_ingest_set_xacml($new_object, $form_state['values']['xacml']);
   }
-  
+
   // Add the pydio file path and repository id to RELS-EXT
   $repo_id = $form_state['storage']['pydio_params']['repo_id'];
   islandora_pydio_bridge_add_file_object_relationship($file_info->pydio_file_path, $repo_id, $new_object);
-    // Add object.
+  // Add object.
   islandora_add_object($new_object);
   // Run the xslt transforms
   module_load_include('inc', 'xml_forms', 'builder/includes/associations');
   $transform = islandora_pydio_bridge_xml_form_builder_get_transforms();
   // Transform the DDI to DC
-  $updated_dc = xml_form_builder_transform_document(DomDocument::load(drupal_realpath($transform['ddi_to_dc.xsl'])),
-    DOMDocument::loadXML($new_object['DDI']->content));
-  if(!empty($updated_dc)){
+  $updated_dc = xml_form_builder_transform_document(DomDocument::load(drupal_realpath($transform['ddi_to_dc.xsl'])), DOMDocument::loadXML($new_object['DDI']->content));
+  if (!empty($updated_dc)) {
     $new_object['DC']->setContentFromString($updated_dc->saveXML());
   }
   // Return the new object pid.
@@ -570,7 +568,7 @@ function islandora_pydio_bridge_ingest_create_obj_datastream(&$form, &$form_stat
   $obj_mimetype = $mime_detect->getMimetype($file_info->file_name);
   $result = islandora_pydio_bridge_scan($file_info->uri);
   // Some sites may not have clamav installed as it is alpha only at this point.
-  if($result == CLAMAV_SCANRESULT_CLEAN || $result == CLAMAV_SCANRESULT_UNCHECKED) {
+  if ($result == CLAMAV_SCANRESULT_CLEAN || $result == CLAMAV_SCANRESULT_UNCHECKED) {
     // Create the OBJ datastream.
     $obj_ds = $new_object->constructDatastream('OBJ', 'M');
     $obj_ds->label = $file_info->file_name;
@@ -579,9 +577,9 @@ function islandora_pydio_bridge_ingest_create_obj_datastream(&$form, &$form_stat
     $obj_ds->setContentFromFile($file_info->uri, FALSE);
     $new_object->logMessage = islandora_pydio_bridge_create_log($result);
     $new_object->ingestDatastream($obj_ds);
-  } else {
-    drupal_set_message(t("Virus scan failed, cannot process %file_name.  OBJ datastream blocked",
-      array('%file_name' => $file_info->file_name)), 'error');
+  }
+  else {
+    drupal_set_message(t("Virus scan failed, cannot process %file_name.  OBJ datastream blocked", array('%file_name' => $file_info->file_name)), 'error');
     $new_object->logMessage = islandora_pydio_bridge_create_log($result);
     return FALSE;
   }
@@ -600,17 +598,18 @@ function islandora_pydio_bridge_ingest_create_obj_datastream(&$form, &$form_stat
  * @return int
  *   The results of the scan.
  */
-function islandora_pydio_bridge_scan($uri){
-  if(file_uri_scheme($uri) == "zip"){
+function islandora_pydio_bridge_scan($uri) {
+  if (file_uri_scheme($uri) == "zip") {
     // Copy the file so clamav can scan it.
     $tmpfile = tempnam(sys_get_temp_dir(), 'pydio');
     copy($uri, $tmpfile);
     $result = function_exists("clamav_scan_file") ? clamav_scan_file(drupal_realpath($tmpfile)) :
-      CLAMAV_SCANRESULT_UNCHECKED;
+        CLAMAV_SCANRESULT_UNCHECKED;
     unlink($tmpfile);
-  } else {
+  }
+  else {
     $result = function_exists("clamav_scan_file") ? clamav_scan_file(drupal_realpath($uri)) :
-      CLAMAV_SCANRESULT_UNCHECKED;
+        CLAMAV_SCANRESULT_UNCHECKED;
   }
   return $result;
 }
@@ -628,7 +627,8 @@ function islandora_pydio_bridge_get_clamav_settings() {
       'host' => variable_get('clamav_daemon_host', CLAMAV_DEFAULT_HOST),
       'port' => variable_get('clamav_daemon_port', CLAMAV_DEFAULT_PORT),
     );
-  } else {
+  }
+  else {
     $settings = variable_get('clamav_executable_path', CLAMAV_DEFAULT_PATH);
   }
   return $settings;
@@ -643,17 +643,19 @@ function islandora_pydio_bridge_get_clamav_settings() {
  * @return string
  *   A string formatted as DCMI DCSV for use in the fedora objects audit trail
  */
-function islandora_pydio_bridge_create_log($result){
+function islandora_pydio_bridge_create_log($result) {
   $settings = islandora_pydio_bridge_get_clamav_settings();
   $clamav_version = function_exists("clamav_get_version") && !empty($settings) ?
-    clamav_get_version($settings) :
-    'no antivirus installed';
+      clamav_get_version($settings) :
+      'no antivirus installed';
   $return_value = "event type: virus check\n";
-  if ($clamav_version == "no antivirus installed" || $result == CLAMAV_SCANRESULT_UNCHECKED){
-    return  $return_value . "eventDetail = Not scanned\n eventOutcome = No op";
-  } elseif ($result == 0) {
+  if ($clamav_version == "no antivirus installed" || $result == CLAMAV_SCANRESULT_UNCHECKED) {
+    return $return_value . "eventDetail = Not scanned\n eventOutcome = No op";
+  }
+  elseif ($result == 0) {
     return $return_value . "eventDetail = program = \"ClamAv -clamscan\";version = \"$clamav_version\" \n eventOutcome = pass";
-  } else {
+  }
+  else {
     return $return_value . "eventDetail = program = \"ClamAv -clamscan\";version = \"$clamav_version\" \n eventOutcome = fail, OBJ datastream was blocked";
   }
 }
@@ -676,16 +678,16 @@ function islandora_pydio_bridge_update_obj_datastream(&$form, &$form_state, $fil
   $pid = $update_object['pid'];
   $object = islandora_object_load($pid);
   // an object may be missing the OBJ if it was blocked by a previous antivirus check so we may have to add it.
-  if(!isset($object['OBJ'])){
+  if (!isset($object['OBJ'])) {
     return islandora_pydio_bridge_ingest_create_obj_datastream($form, $form_state, $object, $file_info);
   }
   $result = islandora_pydio_bridge_scan($file_info->uri);
-  if($result == 0 || $result == -1) {
+  if ($result == 0 || $result == -1) {
     $object['OBJ']->logMessage = islandora_pydio_bridge_create_log($result);
     $object['OBJ']->setContentFromFile($file_info->uri, FALSE);
-  } else {
-    drupal_set_message(t("Virus scan failed, cannot process %file_name.  OBJ datastream blocked",
-      array('%file_name' => $file_info->file_name)), 'error');
+  }
+  else {
+    drupal_set_message(t("Virus scan failed, cannot process %file_name.  OBJ datastream blocked", array('%file_name' => $file_info->file_name)), 'error');
     $object->logMessage = islandora_pydio_bridge_create_log($result);
     return FALSE;
   }
@@ -790,8 +792,8 @@ function islandora_pydio_bridge_get_folder_data($file_data, &$context) {
 
   $count = $zip->numFiles;
   $root_collection = empty($user->data['islandora_pydio_bridge_person_data_collection']) ?
-    variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
-    $user->data['islandora_pydio_bridge_person_data_collection'];
+      variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
+      $user->data['islandora_pydio_bridge_person_data_collection'];
 
   $files_info = array();
   $collections_info = array();
@@ -839,8 +841,8 @@ function islandora_pydio_bridge_get_file_data($params, $file_path, &$context) {
   $file = drupal_realpath($file_path);
 
   $root_collection = empty($user->data['islandora_pydio_bridge_person_data_collection']) ?
-    variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
-    $user->data['islandora_pydio_bridge_person_data_collection'];
+      variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
+      $user->data['islandora_pydio_bridge_person_data_collection'];
 
   $files_info = array();
   $file_entry = new stdClass();
@@ -888,8 +890,7 @@ function islandora_pydio_bridge_object_check($file_path, $repo_id) {
   $repo = islandora_get_tuque_connection();
 
   $pydio_namespace = ISLANDORA_PYDIO_BRIDGE_PYDIO_URI;
-  $query =
-    "PREFIX pydio:<$pydio_namespace>
+  $query = "PREFIX pydio:<$pydio_namespace>
     SELECT ?pid ?label
     FROM <#ri>
     WHERE
@@ -898,11 +899,9 @@ function islandora_pydio_bridge_object_check($file_path, $repo_id) {
       pydio:repository \"$repo_id\" ;
       <fedora-model:label> ?label
     }";
-  
+
   $result = $repo->repository->ri->sparqlQuery($query);
   return $result;
-  
-  
 }
 
 /**
