@@ -76,7 +76,7 @@ function islandora_pydio_bridge_ingest_form($form, &$form_state, $params) {
       <strong>Archive</strong> - Only Researcher/Admin can view/access - no DOI created."),
     '#options' => array(
       'Public' => t("Public"),
-      'Dark' => t("Dark"),
+      'Archive' => t("Archive"),
       'Embargoed' => t('Embargoed'),
     ),
   );
@@ -110,32 +110,10 @@ function islandora_pydio_bridge_ingest_form($form, &$form_state, $params) {
     '#default_value' => FALSE,
   );
 
-  // Choose xacml.
-  $xacml_path = drupal_get_path('module', 'islandora_pydio_bridge') . ISLANDORA_PYDIO_BRIDGE_XACML_FOLDER;
-  $xacmls = file_scan_directory($xacml_path, '/.*\.xml$/');
-
-  $options = array();
-  foreach ($xacmls as $xacml) {
-    $value = $xacml->name;
-    $key = drupal_realpath($xacml->uri);
-    $options[$key] = $value;
-  }
-
-  $form['xacml'] = array(
-    '#type' => 'select',
-    '#title' => t('Select XACML file'),
-    '#options' => $options,
-    '#states' => array(
-      'visible' => array(
-        ':input[name=restrict_options]' => array('value' => 'xacml'),
-      ),
-    ),
-  );
-
   // Set a specific callback for the submit button.
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Ingest'),
+    '#value' => t('Submit'),
   );
 
   if ($params['is_dir'] == 'true') {
@@ -468,11 +446,7 @@ function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file
     islandora_pydio_bridge_ingest_set_embargo(array($new_object), $embargo_date);
   }
 
-  // Set the xacml policy datastream.
-  if (isset($form_state['values']['restrict_options']) &&
-      $form_state['values']['restrict_options'] == 'xacml') {
-    islandora_pydio_bridge_ingest_set_xacml($new_object, $form_state['values']['xacml']);
-  }
+  islandora_pydio_bridge_ingest_set_xacml($new_object, $form_state['values']['restrict_options']);
 
   // Add the pydio file path and repository id to RELS-EXT
   $repo_id = $form_state['storage']['pydio_params']['repo_id'];
@@ -696,8 +670,10 @@ function islandora_pydio_bridge_update_obj_datastream(&$form, &$form_state, $fil
 
 /**
  * Set embargo of the object.
+ * 
+ * Currently we leave the DDI unembargoed
  *
- * @param AbstractObject|string $objects
+ * @param array $objects
  *   The object or the pid of the object.
  * @param string $end
  *   The expire date (yyyy-mm-dd).
@@ -705,28 +681,49 @@ function islandora_pydio_bridge_update_obj_datastream(&$form, &$form_state, $fil
 function islandora_pydio_bridge_ingest_set_embargo($objects, $end = "indefinite") {
   module_load_include('inc', 'islandora_scholar_embargo');
   foreach ($objects as $object) {
-    islandora_scholar_embargo_set_embargo($object, NULL, $end);
+    $ds_array = array();
+    foreach ($object as $datastream) {
+      // Embargo all datastreams except DDI
+      if ($datastream->id != 'DDI') {
+        $ds_array[] = $datastream->id;
+      }
+    }
+    islandora_scholar_embargo_set_embargo($object, $ds_array, $end);
   }
 }
 
 /**
  * Add the xacml to an object.
  *
- * @param string|AbstractObject $object
+ * @param AbstractObject $object
  *   The object (or its pid) that the xacml should be added to
- * @param string $xacml
- *   The real path pf the xacml file.
+ * @param string $restriction
+ *  The type of restriction (Public, Archive or Embargoed).
+ *  Public - Public users can access description and download/view the dataset - a DOI is created.
+ *  Embargoed - Public users can access the description, but need to contact researcher for dataset view/download - a DOI is created.
+ *  Archive - Only Researcher/Admin can view/access - no DOI created.
  */
-function islandora_pydio_bridge_ingest_set_xacml($object, $xacml) {
-
-  $xacml_ds = $object->constructDatastream('POLICY', 'X');
-  $xacml_ds->setContentFromFile($xacml);
-  $xacml_ds->label = "XACML Policy Stream";
-  if ($object->getDatastream('POLICY')) {
-    $object->purgeDatastream('POLICY');
+function islandora_pydio_bridge_ingest_set_xacml($object, $restriction) {
+  switch ($restriction) {
+    case "Public" :
+      $xacml = new IslandoraXacml($object);
+      $xacml->managementRule->addUser(array($object->owner, 'admin'));
+      $xacml->writeBackToFedora();
+      break;
+    case "Archive" :
+      $xacml = new IslandoraXacml($object);
+      $xacml->viewingRule->addUser(array($object->owner, 'admin'));
+      $xacml->managementRule->addUser(array($object->owner, 'admin'));
+      $xacml->writeBackToFedora();
+      break;
+    // Scholar embargo module creates the xacml for Embargoed case
   }
+}
 
-  $object->ingestDatastream($xacml_ds);
+function islandora_pydio_bridge_ingest_create_doi($object, $restriction) {
+  if ($restriction == 'Archive') {
+    return;
+  }
 }
 
 /**

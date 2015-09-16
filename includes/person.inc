@@ -8,6 +8,8 @@
 /**
  * Verify that the users entity and collection object exist in islandora/fedora.
  *
+ * @todo Give the user the option to recreate their entity or collection object.
+ * Don't force it just in case the failure is temporary.
  * @param $account
  *   The users drupal account object
  */

@@ -5,7 +5,6 @@ dependencies[] = islandora_scholar_embargo
 dependencies[] = islandora_basic_collection
 dependencies[] = islandora_entities
 dependencies[] = islandora_binary_object
-dependencies[] = islandora_xacml_api
 files[] = tests/ddi_transform.test
 package = Islandora
 version = 7.x-dev
