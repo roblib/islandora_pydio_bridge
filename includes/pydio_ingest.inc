@@ -67,6 +67,20 @@ function islandora_pydio_bridge_ingest_form($form, &$form_state, $params) {
   $form_name = "Islandora Pydio Bridge DDI form";
   $form = xml_form_builder_get_form($form, $form_state, $form_name);
 
+  $form['restrict_options'] = array(
+    '#type' => 'select',
+    '#title' => t("Is this dataset restricted?"),
+    '#default_value' => 'Public',
+    '#description' => t("<strong>Public</strong> - Public users can access description and download/view the dataset - a DOI is created.</br>
+      <strong>Embargoed</strong> - Public users can access the description, but need to contact researcher for dataset view/download - a DOI is created.</br>
+      <strong>Archive</strong> - Only Researcher/Admin can view/access - no DOI created."),
+    '#options' => array(
+      'Public' => t("Public"),
+      'Dark' => t("Dark"),
+      'Embargoed' => t('Embargoed'),
+    ),
+  );
+
   $form['embargo_duration'] = array(
     '#type' => 'radios',
     '#tree' => TRUE,
@@ -78,7 +92,7 @@ function islandora_pydio_bridge_ingest_form($form, &$form_state, $params) {
     ),
     '#states' => array(
       'visible' => array(        
-        ':input[name="StudyUnit[Archive][ArchiveSpecific][DefaultAccess][AccessConditions][AccessLevel]"]' => array('value' => 'Embargoed'),
+        ':input[name=restrict_options]' => array('value' => 'Embargoed'),
       ),
     ),
     '#default_value' => 'indefinite',
@@ -89,7 +103,7 @@ function islandora_pydio_bridge_ingest_form($form, &$form_state, $params) {
     '#description' => t('The date until which this item should be embargoed (we will check with you on this date to confirm that it is ready for release)'),
     '#states' => array(
       'visible' => array(
-        ':input[name="StudyUnit[Archive][ArchiveSpecific][DefaultAccess][AccessConditions][AccessLevel]"]' => array('value' => 'Embargoed'),
+        ':input[name=restrict_options]' => array('value' => 'Embargoed'),
         ':input[name=embargo_duration]' => array('value' => 'finite'),
       ),
     ),
@@ -113,7 +127,7 @@ function islandora_pydio_bridge_ingest_form($form, &$form_state, $params) {
     '#options' => $options,
     '#states' => array(
       'visible' => array(
-        ':input[name="StudyUnit[Archive][ArchiveSpecific][DefaultAccess][AccessConditions][AccessLevel]"]' => array('value' => 'Embargoed'),
+        ':input[name=restrict_options]' => array('value' => 'xacml'),
       ),
     ),
   );
@@ -153,9 +167,7 @@ function islandora_pydio_bridge_ingest_form_validate(&$form, &$form_state) {
   $date = $form_state['values']['embargo_date'];
   $time_now = time();
   $parsed = strtotime($date);
-  if ($form_state['values']['StudyUnit']['Archive']['ArchiveSpecific']
-      ['DefaultAccess']['AccessConditions']['AccessLevel'] == 'embargo' && 
-        $form_state['values']['embargo_duration'] == 'finite') {
+  if ($form_state['values']['restrict_options'] == 'Embargoed' && $form_state['values']['embargo_duration'] == 'finite') {
     if ($parsed <= $time_now) {
       form_set_error('embargo_date', t('You cannot specify a date in the past!'));
       $newembargo = array();
@@ -179,6 +191,11 @@ function islandora_pydio_bridge_ingest_form_submit(&$form, &$form_state) {
 
   // Get the pydio params.
   $params = $form_state['storage']['pydio_params'];
+  //Populate the hidden form element (if it exists) so we get this in the DDI
+  if(isset($form_state['values']['StudyUnit']['Archive']['ArchiveSpecific']['DefaultAccess']['AccessConditions']['AccessLevel'])){
+  $form_state['values']['StudyUnit']['Archive']['ArchiveSpecific']['DefaultAccess']['AccessConditions']['AccessLevel'] =
+      $form_state['values']['restrict_options'];
+  }
   $download_url = "";
   if (isset($form_state['storage']['download_url'])) {
     $download_url = $form_state['storage']['download_url'];
@@ -439,10 +456,8 @@ function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file
     islandora_pydio_bridge_ingest_create_policy_datastream($new_object, $parent_collection);
   }
    // Add embargo to this object.
-  if (isset($form_state['values']['StudyUnit']['Archive']['ArchiveSpecific']
-      ['DefaultAccess']['AccessConditions']['AccessLevel']) &&
-      $form_state['values']['StudyUnit']['Archive']['ArchiveSpecific']
-      ['DefaultAccess']['AccessConditions']['AccessLevel'] == 'Embargoed') {
+  if (isset($form_state['values']['restrict_options']) &&
+      $form_state['values']['restrict_options'] == 'Embargoed') {
     if (isset($form_state['values']['embargo_date']) &&
         isset($form_state['values']['embargo_duration']) &&
         $form_state['values']['embargo_duration'] == 'finite') {
@@ -459,7 +474,7 @@ function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file
       $form_state['values']['restrict_options'] == 'xacml') {
     islandora_pydio_bridge_ingest_set_xacml($new_object, $form_state['values']['xacml']);
   }
-
+  
   // Add the pydio file path and repository id to RELS-EXT
   $repo_id = $form_state['storage']['pydio_params']['repo_id'];
   islandora_pydio_bridge_add_file_object_relationship($file_info->pydio_file_path, $repo_id, $new_object);

@@ -2047,7 +2047,7 @@
                         <children>
                           <element name="AccessLevel">
                             <properties>
-                              <type>select</type>
+                              <type>hidden</type>
                               <access>TRUE</access>
                               <collapsed>FALSE</collapsed>
                               <collapsible>FALSE</collapsible>
