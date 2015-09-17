@@ -5,6 +5,15 @@
  * Pydio callback stuff.
  */
 
+// Redefining the CLAMAV constants as we only have an soft (optional dependancy on CLAMAV).
+// If the module is not installed we will still want to say the file was unchecked.
+// The file was not checked
+define('ISLANDORA_SCANRESULT_UNCHECKED', -1);
+// The file was checked and found to be clean.
+define('ISLANDORA_SCANRESULT_CLEAN', 0);
+// The file was checked and found to be infected.
+define('ISLANDORA_SCANRESULT_INFECTED', 1);
+
 /**
  * The callback proper.
  *
@@ -542,7 +551,7 @@ function islandora_pydio_bridge_ingest_create_obj_datastream(&$form, &$form_stat
   $obj_mimetype = $mime_detect->getMimetype($file_info->file_name);
   $result = islandora_pydio_bridge_scan($file_info->uri);
   // Some sites may not have clamav installed as it is alpha only at this point.
-  if ($result == CLAMAV_SCANRESULT_CLEAN || $result == CLAMAV_SCANRESULT_UNCHECKED) {
+  if ($result == ISLANDORA_SCANRESULT_CLEAN || $result == ISLANDORA_SCANRESULT_UNCHECKED) {
     // Create the OBJ datastream.
     $obj_ds = $new_object->constructDatastream('OBJ', 'M');
     $obj_ds->label = $file_info->file_name;
@@ -578,12 +587,12 @@ function islandora_pydio_bridge_scan($uri) {
     $tmpfile = tempnam(sys_get_temp_dir(), 'pydio');
     copy($uri, $tmpfile);
     $result = function_exists("clamav_scan_file") ? clamav_scan_file(drupal_realpath($tmpfile)) :
-        CLAMAV_SCANRESULT_UNCHECKED;
+        ISLANDORA_SCANRESULT_UNCHECKED;
     unlink($tmpfile);
   }
   else {
     $result = function_exists("clamav_scan_file") ? clamav_scan_file(drupal_realpath($uri)) :
-        CLAMAV_SCANRESULT_UNCHECKED;
+        ISLANDORA_SCANRESULT_UNCHECKED;
   }
   return $result;
 }
@@ -623,7 +632,7 @@ function islandora_pydio_bridge_create_log($result) {
       clamav_get_version($settings) :
       'no antivirus installed';
   $return_value = "event type: virus check\n";
-  if ($clamav_version == "no antivirus installed" || $result == CLAMAV_SCANRESULT_UNCHECKED) {
+  if ($clamav_version == "no antivirus installed" || $result == ISLANDORA_SCANRESULT_UNCHECKED) {
     return $return_value . "eventDetail = Not scanned\n eventOutcome = No op";
   }
   elseif ($result == 0) {
