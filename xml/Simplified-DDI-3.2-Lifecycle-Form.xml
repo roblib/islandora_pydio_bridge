@@ -436,7 +436,7 @@
                   <disabled>FALSE</disabled>
                   <executes_submit_callback>FALSE</executes_submit_callback>
                   <multiple>FALSE</multiple>
-                  <required>FALSE</required>
+                  <required>TRUE</required>
                   <resizable>FALSE</resizable>
                   <title>Author(s)/Creator(s)</title>
                   <tree>TRUE</tree>
@@ -451,7 +451,7 @@
                       <disabled>FALSE</disabled>
                       <executes_submit_callback>FALSE</executes_submit_callback>
                       <multiple>FALSE</multiple>
-                      <required>FALSE</required>
+                      <required>TRUE</required>
                       <resizable>FALSE</resizable>
                       <title>Creator(s)</title>
                       <tree>TRUE</tree>
@@ -481,6 +481,46 @@
                     <children/>
                   </element>
                 </children>
+              </element>
+              <element name="Publisher-textfield">
+                <properties>
+                  <type>textfield</type>
+                  <access>TRUE</access>
+                  <collapsed>FALSE</collapsed>
+                  <collapsible>FALSE</collapsible>
+                  <default_value>University of Prince Edward Island</default_value>
+                  <description>Publisher</description>
+                  <disabled>FALSE</disabled>
+                  <executes_submit_callback>FALSE</executes_submit_callback>
+                  <multiple>FALSE</multiple>
+                  <required>TRUE</required>
+                  <resizable>FALSE</resizable>
+                  <title>Publisher</title>
+                  <tree>TRUE</tree>
+                  <actions>
+                    <create>
+                      <path>self::node()</path>
+                      <context>parent</context>
+                      <schema/>
+                      <type>xml</type>
+                      <prefix>NULL</prefix>
+                      <value>&lt;r:Publisher&gt;&lt;r:PublisherName&gt;&lt;r:String&gt;%value%&lt;/r:String&gt;&lt;/r:PublisherName&gt;&lt;/r:Publisher&gt;</value>
+                    </create>
+                    <read>
+                      <path>r:Publisher/r:PublisherName/r:String</path>
+                      <context>parent</context>
+                    </read>
+                    <update>
+                      <path>self::node()</path>
+                      <context>self</context>
+                    </update>
+                    <delete>
+                      <path>self::node()</path>
+                      <context>self</context>
+                    </delete>
+                  </actions>
+                </properties>
+                <children/>
               </element>
               <element name="contrib-tabs">
                 <properties>
@@ -629,7 +669,7 @@
                             <WorkPackageLeader>Work Package Leader </WorkPackageLeader>
                             <Other>Other</Other>
                           </options>
-                          <required>FALSE</required>
+                          <required>TRUE</required>
                           <resizable>FALSE</resizable>
                           <title>Contributor Role</title>
                           <tree>TRUE</tree>

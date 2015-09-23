@@ -456,6 +456,7 @@ function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file
   }
 
   islandora_pydio_bridge_ingest_set_xacml($new_object, $form_state['values']['restrict_options']);
+  islandora_pydio_bridge_ingest_create_doi($new_object, $form_state['values']['restrict_options']);
 
   // Add the pydio file path and repository id to RELS-EXT
   $repo_id = $form_state['storage']['pydio_params']['repo_id'];
@@ -730,8 +731,14 @@ function islandora_pydio_bridge_ingest_set_xacml($object, $restriction) {
 }
 
 function islandora_pydio_bridge_ingest_create_doi($object, $restriction) {
+  // Don't create a DOI if we just want to archive the data
   if ($restriction == 'Archive') {
     return;
+  }
+  $result = islandora_datacite_doi_mint_doi($object, 'DDI', 'DDI'); 
+  if($result < 0){
+    drupal_set_message(t('DOI error for @object, check watchdog logs for more information.',
+        array('@object' => $object->id)),'warning');
   }
 }
 
