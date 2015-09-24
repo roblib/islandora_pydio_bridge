@@ -507,7 +507,7 @@ function islandora_pydio_bridge_ingest_create_ddi_datastream(&$form, &$form_stat
   $ddi_doc = $xml_form->submit($ddi_form, $ddi_form_state);
   $ddi_ds = $new_object->constructDatastream('DDI', 'M');
   $ddi_ds->label = 'DDI Record';
-  $ddi_ds->mimeType = 'text/xml';
+  $ddi_ds->mimeType = 'application/xml';
   $ddi_ds->setContentFromString($ddi_doc->document->saveXML());
   $new_object->ingestDatastream($ddi_ds);
 }
@@ -527,6 +527,8 @@ function islandora_pydio_bridge_ingest_create_policy_datastream($new_object, $pa
   // Create the OBJ datastream.
   $obj_ds = $new_object->constructDatastream('COLLECTION_POLICY', 'M');
   $obj_ds->label = 'COLLECTION_POLICY';
+  // Currently Islandora creates Collectioin policies as text/xml so we do the same
+  // we may want to revisit this.
   $obj_ds->mimeType = 'text/xml';
   $obj_ds->setContentFromString($policy->getXML());
   $new_object->ingestDatastream($obj_ds);
