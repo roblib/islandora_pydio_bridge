@@ -253,13 +253,15 @@ function islandora_pydio_bridge_islandora_datastream_modified($object, $datastre
   if ($datastream->id != 'DDI') {
     return;
   }
-  $xml_doc = new DOMDocument($datastream->content);
+  $xml = new DOMDocument();
+  $test = $xml->loadXML($datastream->content);
   $query = "//r:Citation/r:InternationalIdentifier[r:ManagingAgency/text() = 'Datacite']/r:IdentifierContent";
-  $xpath = new DOMXPath($xml_doc);
+  $xpath = new DOMXPath($xml);
   $xpath->registerNamespace('r', 'ddi:reusable:3_2');
   $results = $xpath->query($query);
+  $identifier = $results->item(0)->nodeValue;
   // If we have a doi set it inactive on datacite.
-  if ($results->item(0)) {
+  if (!empty($identifier)) {
     $updated = islandora_datacite_doi_update_doi($object, $datastream->id);
     if ($updated < 0) {
       drupal_set_message(t('There was an error updating the Datacite metadata for @object - @dsid,'
