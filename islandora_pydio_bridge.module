@@ -4,7 +4,6 @@
  * @file
  * Module used to integrate Pydio and Islandora.
  */
-
 define('ISLANDORA_PYDIO_BRIDGE_INGEST_PATH', 'islandora_pydio_bridge/ingest');
 define('ISLANDORA_PYDIO_BRIDGE_XACML_FOLDER', '/xacml');
 define('ISLANDORA_PYDIO_BRIDGE_PYDIO_URI', 'http://pyd.io#');
@@ -79,15 +78,14 @@ function islandora_pydio_bridge_islandora_required_objects(IslandoraTuque $conne
  */
 function islandora_pydio_bridge_user_view($account, $view_mode) {
   $collection_pid = empty($account->data['islandora_pydio_bridge_person_data_collection']) ? NULL :
-    $account->data['islandora_pydio_bridge_person_data_collection'];
+      $account->data['islandora_pydio_bridge_person_data_collection'];
   if (!empty($collection_pid)) {
     $collection_link = l($collection_pid, "islandora/object/$collection_pid");
     $account->content['islandora_pydio_bridge_user_collection'] = array(
       '#type' => 'user_profile_category',
       '#title' => 'Personal Research Data Collection',
       'research_data_collection' => array(
-        '#markup' => t("Your Personal Data Collection ID is !collection_pid.",
-          array('!collection_pid' => $collection_link)),
+        '#markup' => t("Your Personal Data Collection ID is !collection_pid.", array('!collection_pid' => $collection_link)),
         '#type' => 'user_profile_item',
         '#title' => 'Personal Collection ID',
       ),
@@ -95,15 +93,14 @@ function islandora_pydio_bridge_user_view($account, $view_mode) {
     );
   }
   $entity_pid = empty($account->data['islandora_pydio_bridge_person_entity']) ? NULL :
-    $account->data['islandora_pydio_bridge_person_entity'];
+      $account->data['islandora_pydio_bridge_person_entity'];
   if (!empty($entity_pid)) {
     $entity_link = l($entity_pid, "islandora/object/$entity_pid");
     $account->content['islandora_pydio_bridge_person_entity'] = array(
       '#type' => 'user_profile_category',
       '#title' => 'Personal Entity Object',
       'entity_data_object' => array(
-        '#markup' => t("Your Entity Object ID is !entity_pid.",
-          array('!entity_pid' => $entity_link)),
+        '#markup' => t("Your Entity Object ID is !entity_pid.", array('!entity_pid' => $entity_link)),
         '#type' => 'user_profile_item',
         '#title' => 'Personal Entity ID',
       ),
@@ -244,4 +241,45 @@ function islandora_pydio_bridge_xml_form_builder_get_self_transforms() {
   return array(
     'cleanup_ddi.xsl' => "$module_path/xml/cleanup_ddi.xsl",
   );
+}
+
+/**
+ * Implements hook_islandora_datastream_modified().
+ * 
+ * We need to update datacite if the DDI is modified.
+ */
+function islandora_pydio_bridge_islandora_datastream_modified($object, $datastream) {
+  module_load_include('inc', 'islandora_pydio_bridge', 'includes/pydio_ingest');
+  if ($datastream->id != 'DDI') {
+    return;
+  }
+  $xml_doc = new DOMDocument($datastream->content);
+  $query = "//r:Citation/r:InternationalIdentifier[r:ManagingAgency/text() = 'Datacite']/r:IdentifierContent";
+  $xpath = new DOMXPath($xml_doc);
+  $xpath->registerNamespace('r', 'ddi:reusable:3_2');
+  $results = $xpath->query($query);
+  // If we have a doi set it inactive on datacite.
+  if ($results->item(0)) {
+    $updated = islandora_datacite_doi_update_doi($object, $datastream->id);
+    if ($updated < 0) {
+      drupal_set_message(t('There was an error updating the Datacite metadata for @object - @dsid,'
+              . ' check the watchdog logs for more information', array('@object' => $object->id, '@dsid' => $datastream->id)));
+    }
+  }
+}
+
+/**
+ * Implements hook_islandora_object_purged().
+ * 
+ * We need to update datacite if the object is purged 
+ */
+function islandora_pydio_bridge_islandora_object_purged($pid) {
+  module_load_include('inc', 'islandora_pydio_bridge', 'includes/pydio_ingest');
+  // Attempt to mark the doi as inactive, at this point we don't know for sure if the
+  // object had a doi or not.
+  $deleted = islandora_datacite_doi_delete($pid);
+  if ($deleted < 0) {
+    drupal_set_message(t('There was an error deleting Datacite doi for @object, '
+            . ' check the watchdog logs for more information', array('@object' => $object->id)));
+  }
 }
