@@ -37,20 +37,15 @@ function islandora_pydio_bridge_ingest() {
     parse_str($params['download_query_params'], $qp);
     $params['download_query_params'] = $qp;
   }
-  // Check to see if a folder is tring to update.
+  // Check to see if a folder is trying to update and treat it as a zip.
   if ($params['is_dir'] == 'true') {
-    $file_path = $params['download_query_params']['file'] . '/';
+    $file_path = $params['download_query_params']['file'] . '.zip';
   }
   else {
     $file_path = $params['download_query_params']['file'];
   }
-
   $pids = islandora_pydio_bridge_object_check($file_path, $params['repo_id']);
   if ($pids && empty($params['pid_list'])) {
-    if ($params['is_dir'] == 'true') {
-      drupal_set_message(t("Folders cannot be updated.  This will create a new collection."), "warning");
-      return drupal_get_form('islandora_pydio_bridge_ingest_form', $params);
-    }
     $params['pid_list'] = $pids;
     return drupal_get_form('islandora_pydio_bridge_update_form', $params);
   }
@@ -664,7 +659,7 @@ function islandora_pydio_bridge_update_obj_datastream(&$form, &$form_state, $fil
   $pid = $update_object['pid'];
   $object = islandora_object_load($pid);
   // an object may be missing the OBJ if it was blocked by a previous antivirus check so we may have to add it.
-  if (!isset($object['OBJ'])) {
+  if (empty($object['OBJ'])) {
     return islandora_pydio_bridge_ingest_create_obj_datastream($form, $form_state, $object, $file_info);
   }
   $result = islandora_pydio_bridge_scan($file_info->uri);
@@ -711,9 +706,9 @@ function islandora_pydio_bridge_ingest_set_embargo($objects, $end = "indefinite"
  *   The object (or its pid) that the xacml should be added to
  * @param string $restriction
  *  The type of restriction (Public, Archive or Embargoed).
- *  Public - Public users can access description and download/view the dataset - a DOI is created.
- *  Embargoed - Public users can access the description, but need to contact researcher for dataset view/download - a DOI is created.
- *  Archive - Only Researcher/Admin can view/access - no DOI created.
+ *  Public - Public users can access description and download/view the dataset 
+ *  Embargoed - Public users can access the description, but need to contact researcher for dataset view/download 
+ *  Archive - Only Researcher/Admin can view/access
  */
 function islandora_pydio_bridge_ingest_set_xacml($object, $restriction) {
   switch ($restriction) {
@@ -732,6 +727,18 @@ function islandora_pydio_bridge_ingest_set_xacml($object, $restriction) {
   }
 }
 
+
+/**
+ * Mint a doi and add it to an object.
+ *
+ * @param AbstractObject $object
+ *   The object (or its pid) that the xacml should be added to
+ * @param string $restriction
+ *  The type of restriction (Public, Archive or Embargoed).
+ *  Public - a DOI is created.
+ *  Embargoed -  a DOI is created.
+ *  Archive - no DOI created.
+ */
 function islandora_pydio_bridge_ingest_create_doi($object, $restriction) {
   // Don't create a DOI if we just want to archive the data
   if ($restriction == 'Archive') {
@@ -758,7 +765,7 @@ function islandora_pydio_bridge_download_file_data($params, $download_url, &$con
   // Get the path info of the download_url
   $download_url_path_info = pathinfo($download_url);
   // Check to see if the file is a zip file.
-  $is_zip_file = $is_single_file = isset($download_url_path_info['extension']) ? FALSE : TRUE;
+  $is_zip_file = isset($download_url_path_info['extension']) ? FALSE : TRUE;
 
   // We want to pass the cookie information.
   $temparray = array();
@@ -783,8 +790,10 @@ function islandora_pydio_bridge_download_file_data($params, $download_url, &$con
   fclose($fp);
 
   if ($is_zip_file) {
-    // Creates file and collection arrays, storing in the context results.
-    islandora_pydio_bridge_get_folder_data($temp_file_path, $context);
+    // Add a zip extension to the filename and treat it as a single file
+    $params['download_query_params']['file'] = $params['download_query_params']['file'] . '.zip';
+    //islandora_pydio_bridge_get_folder_data($temp_file_path, $context);
+    islandora_pydio_bridge_get_file_data($params, $temp_file_path, $context);
   }
   else {
     islandora_pydio_bridge_get_file_data($params, $temp_file_path, $context);
@@ -792,59 +801,7 @@ function islandora_pydio_bridge_download_file_data($params, $download_url, &$con
 }
 
 /**
- * Get the folder information.
- *
- * @param string $file_data
- *   The download url in pydio.
- */
-function islandora_pydio_bridge_get_folder_data($file_data, &$context) {
-  global $user;
-  $zip = new ZipArchive();
-  $zip_file = drupal_realpath($file_data);
-  if (($error = $zip->open($zip_file)) !== TRUE) {
-    return FALSE;
-  }
-
-  $count = $zip->numFiles;
-  $root_collection = empty($user->data['islandora_pydio_bridge_person_data_collection']) ?
-      variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
-      $user->data['islandora_pydio_bridge_person_data_collection'];
-
-  $files_info = array();
-  $collections_info = array();
-
-  for ($i = 0; $i < $count; $i++) {
-    $name = $zip->getNameIndex($i);
-    $path_info = pathinfo($name);
-
-    $file_entry = new stdClass();
-    $file_entry->parent_collection = '/' . $path_info['dirname'] . '/';
-    $file_entry->pydio_file_path = '/' . $name;
-    $file_entry->file_name = $path_info['basename'];
-
-    if (isset($path_info['extension']) && strpos($path_info['dirname'], '__MACOSX') === FALSE && $path_info['extension'] != 'DS_Store') {
-      $file_entry->uri = "zip://$zip_file#$name";
-      $files_info[] = $file_entry;
-      $file_entry->is_file = TRUE;
-    }
-    else {
-      $file_entry->parent_collection = $file_entry->parent_collection == "/./" ? $root_collection : $file_entry->parent_collection;
-      $file_entry->content_model = "islandora:collectionCModel";
-      $collections_info[] = $file_entry;
-    }
-  }
-
-  $files_info = array_merge($collections_info, $files_info);
-
-  $zip->close();
-
-  // Store the informatino into th context.
-  $context['results']['files'] = $files_info;
-  $context['results']['temp_zip'] = $zip_file;
-}
-
-/**
- * Get the folder information.
+ * Get the file information.
  *
  * @param array $params
  *   The pydio parameters.
