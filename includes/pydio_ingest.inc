@@ -546,7 +546,8 @@ function islandora_pydio_bridge_ingest_create_obj_datastream(&$form, &$form_stat
   module_load_include('inc', 'islandora', 'includes/mime_detect');
   module_load_include('inc', 'clamav', 'clamav');
   $mime_detect = new MimeDetect();
-  $obj_mimetype = $mime_detect->getMimetype($file_info->file_name);
+  //$obj_mimetype = $mime_detect->getMimetype($file_info->file_name);
+  $obj_mimetype = file_get_mimetype($file_info->file_name);
   $result = islandora_pydio_bridge_scan($file_info->uri);
   // Some sites may not have clamav installed as it is alpha only at this point.
   if ($result == ISLANDORA_SCANRESULT_CLEAN || $result == ISLANDORA_SCANRESULT_UNCHECKED) {
