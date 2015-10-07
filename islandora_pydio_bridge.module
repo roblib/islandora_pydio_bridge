@@ -37,8 +37,29 @@ function islandora_pydio_bridge_menu() {
     'access arguments' => array('administer site configuration'),
     'file' => 'includes/admin.form.inc',
   );
-
+  $items['islandora/object/%islandora_object/ds_versions'] = array(
+    'title' => 'Versions and Events',
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'theme/theme.inc',
+      'page callback' => 'islandora_pydio_bridge_versions',
+      'page arguments' => array(2),
+      'access callback' => 'islandora_user_access',
+      'access arguments' => array(2, array(ISLANDORA_VIEW_OBJECTS)),
+  );  
   return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function islandora_pydio_bridge_theme() {
+  return array(
+    'islandora_pydio_bridge_versions' => array(
+      'variables' => array('object' => NULL),
+      'file' => 'theme/theme.inc',
+      'template' => 'theme/islandora-pydio-bridge-versions',
+    ),
+  );
 }
 
 /**
