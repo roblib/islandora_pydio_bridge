@@ -2571,7 +2571,7 @@
                               <access>TRUE</access>
                               <collapsed>FALSE</collapsed>
                               <collapsible>FALSE</collapsible>
-                              <default_value>intial deposit of object</default_value>
+                              <default_value>initial deposit of object</default_value>
                               <disabled>FALSE</disabled>
                               <executes_submit_callback>FALSE</executes_submit_callback>
                               <multiple>FALSE</multiple>
