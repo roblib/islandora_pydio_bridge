@@ -4,7 +4,6 @@
  * @file
  * Pydio callback stuff.
  */
-
 // Redefining the CLAMAV constants as we only have an soft (optional dependancy on CLAMAV).
 // If the module is not installed we will still want to say the file was unchecked.
 // The file was not checked
@@ -471,6 +470,37 @@ function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file
 }
 
 /**
+ * Add a lifecycle event to the DDI xml.
+ * 
+ * @param Object $datastream
+ *   An Islandora datastream
+ * @param string $type
+ *   The type of event should adhere to the DDI LifecycleEvent type vocabulary.
+ * @param string $content
+ *   The event description
+ * @param bool $update
+ *   If true update the datastream content with the xml if false return the xml.
+ * 
+ * @return null/string
+ *   will return the xml if $update = false otherwise will return null. 
+ */
+function islandora_pydio_bridge_add_ddi_event($datastream, $type, $content, $update = TRUE) {
+  $agency = variable_get('islandora_pydio_bridge_agency', 'ddi agency');
+  // Colon is not valid in a ddi ID
+  $id = uniqid(str_replace(':', '_', $datastream->parent->id) . '-');
+  $event_values = array('agency' => $agency, 'id' => $id,
+    'version' => '1', 'type' => $type, 'content' => $content);
+  $xml = new DOMDocument();
+  $xml->loadXML($datastream->content);
+  $xml = DataciteDoi::addDDIEvent($xml, $event_values);
+  if($update){
+    $datastream->content = $xml->saveXML();
+  } else {
+    return $xml->saveXML();
+  }
+}
+
+/**
  * Creates a DDI Datastream.
  *
  * @param array $form
@@ -498,12 +528,14 @@ function islandora_pydio_bridge_ingest_create_ddi_datastream(&$form, &$form_stat
   unset($ddi_form_state['values']['xacml']);
 
   // Create the DDI datastream.
+
   $xml_form = new XMLForm($ddi_form_state);
   $ddi_doc = $xml_form->submit($ddi_form, $ddi_form_state);
   $ddi_ds = $new_object->constructDatastream('DDI', 'M');
   $ddi_ds->label = 'DDI Record';
   $ddi_ds->mimeType = 'application/xml';
   $ddi_ds->setContentFromString($ddi_doc->document->saveXML());
+  islandora_pydio_bridge_add_ddi_event($ddi_ds, 'Deposit', 'intial deposit of object');
   $new_object->ingestDatastream($ddi_ds);
 }
 
@@ -728,9 +760,8 @@ function islandora_pydio_bridge_ingest_set_xacml($object, $restriction) {
   }
 }
 
-
 /**
- * Mint a doi and add it to an object.
+ * Mint a doi and add it to an object.  If successfull also add a DDI lifecycle event stating we have added a DOI.
  *
  * @param AbstractObject $object
  *   The object (or its pid) that the xacml should be added to
@@ -745,11 +776,12 @@ function islandora_pydio_bridge_ingest_create_doi($object, $restriction) {
   if ($restriction == 'Archive') {
     return;
   }
-  $result = islandora_datacite_doi_mint_doi($object, 'DDI', 'DDI'); 
-  if($result < 0){
-    drupal_set_message(t('DOI error for @object, check watchdog logs for more information.',
-        array('@object' => $object->id)),'warning');
+  $result = islandora_datacite_doi_mint_doi($object, 'DDI', 'DDI');
+  if ($result < 0) {
+    drupal_set_message(t('DOI error for @object, check watchdog logs for more information.', array('@object' => $object->id)), 'warning');
+    return;
   }
+  islandora_pydio_bridge_add_ddi_event($object['DDI'], 'Other', 'minted a DOI and updated the DDI with the DOI');
 }
 
 /**

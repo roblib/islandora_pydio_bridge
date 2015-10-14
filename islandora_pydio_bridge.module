@@ -39,13 +39,13 @@ function islandora_pydio_bridge_menu() {
   );
   $items['islandora/object/%islandora_object/ds_versions'] = array(
     'title' => 'Versions and Events',
-      'type' => MENU_LOCAL_TASK,
-      'file' => 'theme/theme.inc',
-      'page callback' => 'islandora_pydio_bridge_versions',
-      'page arguments' => array(2),
-      'access callback' => 'islandora_user_access',
-      'access arguments' => array(2, array(ISLANDORA_VIEW_OBJECTS)),
-  );  
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'theme/theme.inc',
+    'page callback' => 'islandora_pydio_bridge_versions',
+    'page arguments' => array(2),
+    'access callback' => 'islandora_user_access',
+    'access arguments' => array(2, array(ISLANDORA_VIEW_OBJECTS)),
+  );
   return $items;
 }
 
@@ -60,6 +60,17 @@ function islandora_pydio_bridge_theme() {
       'template' => 'theme/islandora-pydio-bridge-versions',
     ),
   );
+}
+
+/**
+ * Implements hook_islandora_datastream_alter
+ */
+function islandora_pydio_bridge_islandora_datastream_alter(AbstractObject $object, AbstractDatastream $datastream, array &$context) {
+  module_load_include('inc', 'islandora_pydio_bridge', 'includes/pydio_ingest');
+  if ($datastream->id != 'DDI' || $context['action'] != 'modify' || empty($context['params']['dsString'])) {
+    return;
+  }
+  $context['params']['dsString'] = islandora_pydio_bridge_add_ddi_event($datastream, 'MetadataEditing', 'Updating the metadata', FALSE);
 }
 
 /**
@@ -280,13 +291,14 @@ function islandora_pydio_bridge_islandora_datastream_modified($object, $datastre
   $xpath = new DOMXPath($xml);
   $xpath->registerNamespace('r', 'ddi:reusable:3_2');
   $results = $xpath->query($query);
-  $identifier = $results->item(0)->nodeValue;
-  // If we have a doi set it inactive on datacite.
-  if (!empty($identifier)) {
-    $updated = islandora_datacite_doi_update_doi($object, $datastream->id);
-    if ($updated < 0) {
-      drupal_set_message(t('There was an error updating the Datacite metadata for @object - @dsid,'
-              . ' check the watchdog logs for more information', array('@object' => $object->id, '@dsid' => $datastream->id)));
+  if ($results->length > 0) {
+    $identifier = $results->item(0)->nodeValue;
+    if (!empty($identifier)) {
+      $updated = islandora_datacite_doi_update_doi($object, $datastream->id);
+      if ($updated < 0) {
+        drupal_set_message(t('There was an error updating the Datacite metadata for @object - @dsid,'
+                . ' check the watchdog logs for more information', array('@object' => $object->id, '@dsid' => $datastream->id)));
+      }
     }
   }
 }
