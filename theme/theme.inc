@@ -110,7 +110,7 @@ function islandora_pydio_bridge_status_table($datastream) {
   $header[] = array('data' => t('Last Modified Date'));
   $header[] = array('data' => t('Datacite DOI'));
   $header[] = array('data' => t('Status'));
-  $doi = DataciteDoi::getDDIIdentifier($datastream->content);
+  $doi = islandora_pydio_bridge_get_ddi_identifier($datastream->content);
   $status = islandora_pydio_bridge_get_ddi_status($datastream->content);
   $rows = array();
   $row[] = array(
