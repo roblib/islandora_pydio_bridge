@@ -43,8 +43,8 @@ function islandora_pydio_bridge_menu() {
     'file' => 'theme/theme.inc',
     'page callback' => 'islandora_pydio_bridge_versions',
     'page arguments' => array(2),
-    'access callback' => 'islandora_user_access',
-    'access arguments' => array(2, array(ISLANDORA_VIEW_OBJECTS)),
+    'access callback' => 'islandora_pydio_bridge_versions_tab_access_callback',
+    'access arguments' => array(ISLANDORA_VIEW_OBJECTS, 2),
   );
   return $items;
 }
@@ -166,10 +166,30 @@ function islandora_pydio_bridge_user_login(&$edit, $account) {
  */
 function islandora_pydio_bridge_access_callback() {
   global $user;
-  // TODO update this so it gets the correct collection object from the drupal db (we now store each users own collection object
+  // TODO update or remove this so it gets the correct collection object from the drupal db (we now store each users own collection object
   // in their drupal user object
+  // This is used for the pydio frame callback that we probably don't want
   $object = islandora_object_load(variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top'));
   return in_array('authenticated user', $user->roles) && islandora_object_access(ISLANDORA_INGEST, $object, $user);
+}
+
+/**
+ * Menu access callback.
+ * 
+ * We only want to show the versions tab if the object has a DDI datastream.
+ * 
+ * @param string $permission
+ *   An Islandora permission
+ * @param type $object
+ *   An Islandora object
+ * @return boolean
+ *   TRUE if a user should see the versions tab FALSE otherwise.
+ */
+function islandora_pydio_bridge_versions_tab_access_callback($permission, $object) {
+  if (!isset($object['DDI'])) {
+    return FALSE;
+  }
+  return islandora_object_access_callback($permission, $object);
 }
 
 /**
