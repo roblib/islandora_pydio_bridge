@@ -16,7 +16,7 @@ function islandora_pydio_bridge_get_ds_versions($object, $dsid) {
       $label = 'Metadata';
       break;
     default :
-      $label = 'Data';
+      $label = 'Dataset';
   }
 
   if (!empty($ds)) {
@@ -59,7 +59,7 @@ function islandora_pydio_bridge_events_table($datastream) {
   $header[] = array('data' => t('Lifecycle Event Description'));
   $xml = new DOMDocument();
   $test = $xml->loadXML($datastream->content);
-  $query = "//a:Archive/r:LifecycleInformation";
+  $query = "//a:Archive/r:LifecycleInformation/r:LifecycleEvent";
   $xpath = new DOMXPath($xml);
   $xpath->registerNamespace('r', 'ddi:reusable:3_2');
   $xpath->registerNamespace('a', 'ddi:archive:3_2');
