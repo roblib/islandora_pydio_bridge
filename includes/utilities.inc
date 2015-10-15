@@ -155,7 +155,6 @@ function islandora_pydio_bridge_ingest_set_xacml($object, $restriction) {
   }
 }
 
-
 /**
  * Parse the DDI looking for the a:AccessCondition elements Content value.
  * 
@@ -208,24 +207,26 @@ function islandora_pydio_bridge_get_ddi_identifier($ddi) {
  *   The event description
  * @param bool $update
  *   If true update the datastream content with the xml if false return the xml.
+ * @param string xml_string
+ *   If provided use this string instead of the datastreams content
  * 
  * @return null/string
  *   will return the xml if $update = false otherwise will return null. 
  */
-function islandora_pydio_bridge_add_ddi_event($datastream, $type, $content, $update = TRUE) {
+function islandora_pydio_bridge_add_ddi_event($datastream, $type, $content, $update = TRUE, $xml_string = NULL) {
   $agency = variable_get('islandora_pydio_bridge_agency', 'ddi agency');
   // Colon is not valid in a ddi ID
   $id = uniqid(str_replace(':', '_', $datastream->parent->id) . '-');
   $event_values = array('agency' => $agency, 'id' => $id,
     'version' => '1', 'type' => $type, 'content' => $content);
   $xml = new DOMDocument();
-  $xml->loadXML($datastream->content);
+  $xml_content = (isset($xml_string) ? $xml_string : $datastream->content); // returns true
+  $xml->loadXML($xml_content);
   $xml = DataciteDoi::addDDIEvent($xml, $event_values);
-  if($update){
+  if ($update) {
     $datastream->content = $xml->saveXML();
-  } else {
+  }
+  else {
     return $xml->saveXML();
   }
 }
-
-

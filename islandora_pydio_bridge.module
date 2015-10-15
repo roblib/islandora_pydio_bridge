@@ -70,7 +70,7 @@ function islandora_pydio_bridge_islandora_datastream_alter(AbstractObject $objec
   if ($datastream->id != 'DDI' || $context['action'] != 'modify' || empty($context['params']['dsString'])) {
     return;
   }
-  $context['params']['dsString'] = islandora_pydio_bridge_add_ddi_event($datastream, 'MetadataEditing', 'Updating the metadata', FALSE);
+  $context['params']['dsString'] = islandora_pydio_bridge_add_ddi_event($datastream, 'MetadataEditing', 'Updating the metadata', FALSE, $context['params']['dsString']);
 }
 
 /**
