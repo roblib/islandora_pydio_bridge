@@ -133,7 +133,7 @@ function islandora_pydio_bridge_ingest_create_ddi_datastream(&$form, &$form_stat
   $ddi_ds->label = 'DDI Record';
   $ddi_ds->mimeType = 'application/xml';
   $ddi_ds->setContentFromString($ddi_doc->document->saveXML());
-  islandora_pydio_bridge_add_ddi_event($ddi_ds, 'Deposit', 'intial deposit of object');
+  islandora_pydio_bridge_add_ddi_event($ddi_ds, 'Deposit', 'initial deposit of object');
   $new_object->ingestDatastream($ddi_ds);
 }
 

@@ -70,6 +70,10 @@ function islandora_pydio_bridge_islandora_datastream_alter(AbstractObject $objec
   if ($datastream->id != 'DDI' || $context['action'] != 'modify' || empty($context['params']['dsString'])) {
     return;
   }
+  $test = islandora_pydio_bridge_compare_license($datastream->content, $context['params']['dsString']);
+  if (!$test) {
+    $context['params']['dsString'] = islandora_pydio_bridge_add_ddi_event($datastream, 'MetadataEditing', 'The license (Copyright information) has changed', FALSE, $context['params']['dsString']);
+  }
   $context['params']['dsString'] = islandora_pydio_bridge_add_ddi_event($datastream, 'MetadataEditing', 'Updating the metadata', FALSE, $context['params']['dsString']);
 }
 

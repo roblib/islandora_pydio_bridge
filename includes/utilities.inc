@@ -230,3 +230,30 @@ function islandora_pydio_bridge_add_ddi_event($datastream, $type, $content, $upd
     return $xml->saveXML();
   }
 }
+
+/**
+ * Compare to DDI xml strings to see if the Copyright strings are equal
+ * 
+ * @param string $version1
+ *   A string of xml
+ * @param type $version2
+ *   A string of xml
+ * @return bool
+ *   Returns TRUE if the licenses (Copyright info) are the same. *   
+ */
+function islandora_pydio_bridge_compare_license($version1, $version2) {
+  $xml1 = new DomDocument();
+  $xml2 = new DomDocument();
+  $xml1->loadXML($version1);
+  $xml2->loadXML($version2);
+  $license1 = $license2 = '';
+  $content1 = $xml1->getElementsbyTagName('Copyright');
+  if ($content1->length > 0) {
+    $license1 = $content1->item(0)->getElementsbyTagName('String')->item(0)->nodeValue;
+  }
+  $content2 = $xml2->getElementsbyTagName('Copyright');
+  if ($content2->length > 0) {
+    $license2 = $content2->item(0)->getElementsbyTagName('String')->item(0)->nodeValue;
+  }
+  return $license1 === $license2;
+}
