@@ -209,7 +209,7 @@ function islandora_pydio_bridge_ingest_form_submit(&$form, &$form_state) {
 function islandora_pydio_bridge_update_form($form, &$form_state, $params) {
   form_load_include($form_state, 'inc', 'islandora_pydio_bridge', 'includes/pydio_ingest');
 
-  drupal_set_title(t("Islandora Pydio Bridge Update"));
+  drupal_set_title(t("Dataset Update"));
 
   $download_url = url($params['download_base_url'], array(
     'query' => $params['download_query_params'],
@@ -232,8 +232,8 @@ function islandora_pydio_bridge_update_form($form, &$form_state, $params) {
   }
   $form['current_object'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Research data exists in the repository with the same file path and ID number. Do you want to update an existing deposit?'),
-    '#description' => t("Select data to update.  Leave blank to ingest new data."),
+    '#title' => t('Research data exists in the repository with the same file path and ID number. Do you want to update an existing Dataset?'),
+    '#description' => t("To create a new Dataset click Create.  To update existing Datasets select the Datasets to update, enter a reason for updating and click Update."),
   );
 
   $form['current_object']['pid_table'] = array(
@@ -241,12 +241,38 @@ function islandora_pydio_bridge_update_form($form, &$form_state, $params) {
     '#type' => 'tableselect',
     '#options' => $rows,
     '#empty' => t('No results found.'),
+    '#js_select' => FALSE,
+  );
+  
+  $form['current_object']['update_reason'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Reason for update'),
+    '#description' => t('Please enter the reason this dataset is being updated'),
+    '#states' => array(
+      'invisible' => array(
+        ':input[name^="pid_table"]' => array('checked' => FALSE),
+      ),
+    ),
   );
 
   // Set a specific callback for the submit button.
-  $form['submit'] = array(
+  $form['submit_update'] = array(
     '#type' => 'submit',
     '#value' => t('Update'),
+    '#states' => array(
+      'invisible' => array(
+        ':input[name^="pid_table"]' => array('checked' => FALSE),
+      ),
+    ),
+  );
+  $form['submit_create'] = array(
+    '#type' => 'submit',
+    '#value' => t('Create'),
+    '#states' => array(
+      'invisible' => array(
+        ':input[name^="pid_table"]' => array('checked' => TRUE),
+      ),
+    ),
   );
 
   return $form;
@@ -288,8 +314,8 @@ function islandora_pydio_bridge_update_form_submit(&$form, &$form_state) {
       array('islandora_pydio_bridge_update_object_batch',
         array($form, $form_state, $update_list)),
     ),
-    'title' => t('Islandora Pydio Bridge Update'),
-    'init_message' => t('Update from DataSync'),
+    'title' => t('Update Datasets'),
+    'init_message' => t('Updating Datasets'),
     'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaning @estimate.'),
     'error_message' => t('An error has occurred.'),
     'file' => drupal_get_path('module', 'islandora_pydio_bridge') . '/includes/pydio_ingest.inc',
@@ -370,6 +396,7 @@ function islandora_pydio_bridge_update_object_batch($form, $form_state, $update_
   $offset = $sandbox['offset'];
 
   islandora_pydio_bridge_update_obj_datastream($form, $form_state, $file, $update_list[$offset]);
+  islandora_pydio_bridge_add_new_version_event($form_state, $update_list[$offset]);
   $sandbox['offset'] ++;
 
   if ($sandbox['offset'] >= $sandbox['total']) {

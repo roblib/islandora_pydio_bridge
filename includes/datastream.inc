@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * This file contains function related to creating and manipulating datastreams
@@ -76,6 +77,28 @@ function islandora_pydio_bridge_update_obj_datastream(&$form, &$form_state, $fil
   }
   return TRUE;
 }
+
+/**
+ * Update the DDI datastream by creating a new DDI event.
+ * 
+ * We add a NewVersionRelease event if the OBJ datastream is updated (using the bridge)
+ * 
+ * @param array $form_state
+ *   Drupal form_state array
+ * @param array $update_object
+ *   An array with a key "pid" that is the pid of the object to update.
+ */
+function islandora_pydio_bridge_add_new_version_event($form_state, $update_object) {
+  $pid = $update_object['pid'];
+  $object = islandora_object_load($pid);
+  if (empty($object['DDI'])) {
+    drupal_set_message(t("Could not add DDI event to %pid, no DDI datastream", array('%pid' => $pid)));
+  }
+  $content = isset($form_state['values']['update_reason']) ? $form_state['values']['update_reason'] :
+      'Udating Dataset content';
+  islandora_pydio_bridge_add_ddi_event($object['DDI'], "NewVersionRelease", $content);
+}
+
 /**
  * Creates a COLLECTION_POLICY Datastream.
  *
@@ -136,5 +159,3 @@ function islandora_pydio_bridge_ingest_create_ddi_datastream(&$form, &$form_stat
   islandora_pydio_bridge_add_ddi_event($ddi_ds, 'Deposit', 'initial deposit of object');
   $new_object->ingestDatastream($ddi_ds);
 }
-
-
