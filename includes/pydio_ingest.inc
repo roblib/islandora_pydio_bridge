@@ -192,7 +192,7 @@ function islandora_pydio_bridge_ingest_form_submit(&$form, &$form_state) {
       array('islandora_pydio_bridge_ingest_object_batch',
         array($form, $form_state)),
     ),
-    'title' => t('Islandora Pydio Bridge Ingest'),
+    'title' => t('Creating Dataset'),
     'init_message' => t('Ingest from DataSync'),
     'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaning @estimate.'),
     'error_message' => t('An error has occurred.'),
