@@ -79,8 +79,8 @@ function islandora_pydio_bridge_ingest_form($form, &$form_state, $params) {
       <strong>Archive</strong> - Only Researcher/Admin can view/access - no DOI created."),
     '#options' => array(
       'Public' => t("Public"),
-      'Archive' => t("Archive"),
       'Embargoed' => t('Embargoed'),
+      'Archive' => t("Archive"),
     ),
   );
 
