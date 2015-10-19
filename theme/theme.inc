@@ -42,7 +42,7 @@ function template_preprocess_islandora_pydio_bridge_versions(array &$variables) 
   $variables['ddi_dsv_table'] = islandora_pydio_bridge_get_ds_versions($object, 'DDI');
   $variables['lifecycle_events_table'] = islandora_pydio_bridge_events_table($object['DDI']);
   $variables['object_status_table'] = islandora_pydio_bridge_status_table($object['DDI']);
-  drupal_set_title(t('VERSIONS OF -- @label', array('@label' => $object->label)));
+  drupal_set_title($object->label);
 }
 
 /**
