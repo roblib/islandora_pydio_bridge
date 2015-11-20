@@ -51,6 +51,7 @@ function islandora_pydio_bridge_ingest() {
   else {
     return drupal_get_form('islandora_pydio_bridge_ingest_form', $params);
   }
+
 }
 
 /**
@@ -187,10 +188,17 @@ function islandora_pydio_bridge_ingest_form_submit(&$form, &$form_state) {
   // Set up a batch operation.
   $batch = array(
     'operations' => array(
-      array('islandora_pydio_bridge_download_file_data', array(
-          $params, $download_url)),
-      array('islandora_pydio_bridge_ingest_object_batch',
-        array($form, $form_state)),
+      array(
+        'islandora_pydio_bridge_download_file_data',
+        array(
+          $params,
+          $download_url
+        )
+      ),
+      array(
+        'islandora_pydio_bridge_ingest_object_batch',
+        array($form, $form_state)
+      ),
     ),
     'title' => t('Creating Dataset'),
     'init_message' => t('Ingest from DataSync'),
@@ -243,7 +251,7 @@ function islandora_pydio_bridge_update_form($form, &$form_state, $params) {
     '#empty' => t('No results found.'),
     '#js_select' => FALSE,
   );
-  
+
   $form['current_object']['update_reason'] = array(
     '#type' => 'textfield',
     '#title' => t('Reason for update'),
@@ -293,7 +301,10 @@ function islandora_pydio_bridge_update_form_submit(&$form, &$form_state) {
 
   // If the list is empty then go to ingest form.
   if (!$update_list) {
-    $url = url("islandora_pydio_bridge/ingest/", array('absolute' => TRUE, 'query' => $form_state['storage']['pydio_params']));
+    $url = url("islandora_pydio_bridge/ingest/", array(
+      'absolute' => TRUE,
+      'query' => $form_state['storage']['pydio_params']
+    ));
     drupal_goto($url);
   }
   // Get the pydio params.
@@ -309,10 +320,17 @@ function islandora_pydio_bridge_update_form_submit(&$form, &$form_state) {
   // Set up a batch operation.
   $batch = array(
     'operations' => array(
-      array('islandora_pydio_bridge_download_file_data', array(
-          $params, $download_url)),
-      array('islandora_pydio_bridge_update_object_batch',
-        array($form, $form_state, $update_list)),
+      array(
+        'islandora_pydio_bridge_download_file_data',
+        array(
+          $params,
+          $download_url
+        )
+      ),
+      array(
+        'islandora_pydio_bridge_update_object_batch',
+        array($form, $form_state, $update_list)
+      ),
     ),
     'title' => t('Update Datasets'),
     'init_message' => t('Updating Datasets'),
@@ -350,7 +368,7 @@ function islandora_pydio_bridge_ingest_object_batch($form, $form_state, &$contex
 
   $pid = islandora_pydio_bridge_ingest_single_object($form, $form_state, $files[$offset], $result);
   $result['islandora_batch_ingest_object'][$files[$offset]->pydio_file_path] = $pid;
-  $sandbox['offset'] ++;
+  $sandbox['offset']++;
 
   if ($sandbox['offset'] >= $sandbox['total']) {
     file_unmanaged_delete($context['results']['files']);
@@ -366,8 +384,8 @@ function islandora_pydio_bridge_ingest_object_finished($success, $results, $oper
   if ($success) {
     global $user;
     $pydio_data_collection = empty($user->data['islandora_pydio_bridge_person_data_collection']) ?
-        variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
-        $user->data['islandora_pydio_bridge_person_data_collection'];
+      variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
+      $user->data['islandora_pydio_bridge_person_data_collection'];
     drupal_goto("islandora/object/$pydio_data_collection");
   }
 }
@@ -397,7 +415,7 @@ function islandora_pydio_bridge_update_object_batch($form, $form_state, $update_
 
   islandora_pydio_bridge_update_obj_datastream($form, $form_state, $file, $update_list[$offset]);
   islandora_pydio_bridge_add_new_version_event($form_state, $update_list[$offset]);
-  $sandbox['offset'] ++;
+  $sandbox['offset']++;
 
   if ($sandbox['offset'] >= $sandbox['total']) {
     file_unmanaged_delete($context['results']['files']);
@@ -413,8 +431,8 @@ function islandora_pydio_bridge_update_object_finished($success, $results, $oper
   if ($success) {
     global $user;
     $pydio_data_collection = empty($user->data['islandora_pydio_bridge_person_data_collection']) ?
-        variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
-        $user->data['islandora_pydio_bridge_person_data_collection'];
+      variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
+      $user->data['islandora_pydio_bridge_person_data_collection'];
     // TODO fix this
     drupal_goto("islandora/object/$pydio_data_collection");
   }
@@ -437,8 +455,8 @@ function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file
   global $user;
   module_load_include('inc', 'islandora', 'includes/utilities');
   $parent_collection = empty($user->data['islandora_pydio_bridge_person_data_collection']) ?
-      variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
-      $user->data['islandora_pydio_bridge_person_data_collection'];
+    variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
+    $user->data['islandora_pydio_bridge_person_data_collection'];
 
   // If the parent collection is not islandora_pydio_bridge root or the users own collection then find the pid of the
   // parent collection.
@@ -454,7 +472,12 @@ function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file
   // file path.
   $file_info->file_name = isset($file_info->file_name) ? $file_info->file_name : $file_info->pydio_file_path;
   $content_model = isset($file_info->content_model) ? $file_info->content_model : islandora_pydio_bridge_get_content_model($file_info->file_name);
-  $new_object = islandora_prepare_new_object(variable_get("islandora_pydio_bridge_pid_namespace", "pydio"), $title, array(), array($content_model), array(array('relationship' => 'isMemberOfCollection', 'pid' => $parent_collection)));
+  $new_object = islandora_prepare_new_object(variable_get("islandora_pydio_bridge_pid_namespace", "pydio"), $title, array(), array($content_model), array(
+    array(
+      'relationship' => 'isMemberOfCollection',
+      'pid' => $parent_collection
+    )
+  ));
   // If the object is a file then add the OBJ and DDI datastream.
   if (isset($file_info->is_file) && $file_info->is_file == TRUE) {
     // Create OBJ datastream.
@@ -467,20 +490,19 @@ function islandora_pydio_bridge_ingest_single_object(&$form, &$form_state, $file
     islandora_pydio_bridge_ingest_create_policy_datastream($new_object, $parent_collection);
   }
   // Add embargo to this object.
+  $embargo_date = "indefinite";
   if (isset($form_state['values']['restrict_options']) &&
-      $form_state['values']['restrict_options'] == 'Embargoed') {
+    $form_state['values']['restrict_options'] == 'Embargoed'
+  ) {
     if (isset($form_state['values']['embargo_date']) &&
-        isset($form_state['values']['embargo_duration']) &&
-        $form_state['values']['embargo_duration'] == 'finite') {
+      isset($form_state['values']['embargo_duration']) &&
+      $form_state['values']['embargo_duration'] == 'finite'
+    ) {
       $embargo_date = $form_state['values']['embargo_date'];
     }
-    else {
-      $embargo_date = "indefinite";
-    }
-    islandora_pydio_bridge_ingest_set_embargo(array($new_object), $embargo_date);
   }
 
-  islandora_pydio_bridge_ingest_set_xacml($new_object, $form_state['values']['restrict_options']);
+  islandora_pydio_bridge_ingest_set_xacml($new_object, $form_state['values']['restrict_options'], $embargo_date);
   islandora_pydio_bridge_ingest_create_doi($new_object, $form_state['values']['restrict_options']);
 
   // Add the pydio file path and repository id to RELS-EXT
@@ -515,7 +537,6 @@ function islandora_pydio_bridge_download_file_data($params, $download_url, &$con
   $download_url_path_info = pathinfo($download_url);
   // Check to see if the file is a zip file.
   $is_zip_file = isset($download_url_path_info['extension']) ? FALSE : TRUE;
-
   // We want to pass the cookie information.
   $temparray = array();
   foreach ($_COOKIE as $key => $value) {
@@ -527,7 +548,6 @@ function islandora_pydio_bridge_download_file_data($params, $download_url, &$con
   $temp_file_name = 'pydio_temp';
   $temp_file_path = file_create_filename($temp_file_name, 'temporary://');
   $fp = fopen($temp_file_path, 'w+');
-
   $ch = curl_init($download_url);
   curl_setopt($ch, CURLOPT_COOKIE, $cookies);
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -535,6 +555,14 @@ function islandora_pydio_bridge_download_file_data($params, $download_url, &$con
   curl_setopt($ch, CURLOPT_FILE, $fp);
   curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
   curl_exec($ch);
+  if (curl_errno($ch)) {
+    $curl_error = curl_error($ch);
+    watchdog("islandora_pydio_bridge", "Failed to download file from %url, %message", array(
+      "%url" => $download_url,
+      "%message" => $curl_error,
+    ), WATCHDOG_ERROR, NULL);
+  }
+
   curl_close($ch);
   fclose($fp);
 
@@ -562,8 +590,8 @@ function islandora_pydio_bridge_get_file_data($params, $file_path, &$context) {
   $file = drupal_realpath($file_path);
 
   $root_collection = empty($user->data['islandora_pydio_bridge_person_data_collection']) ?
-      variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
-      $user->data['islandora_pydio_bridge_person_data_collection'];
+    variable_get('islandora_pydio_bridge_repository_pid', 'islandora:pydio_data_top') :
+    $user->data['islandora_pydio_bridge_person_data_collection'];
 
   $files_info = array();
   $file_entry = new stdClass();

@@ -75,6 +75,12 @@ function islandora_pydio_bridge_islandora_datastream_alter(AbstractObject $objec
     $context['params']['dsString'] = islandora_pydio_bridge_add_ddi_event($datastream, 'MetadataEditing', 'The license (Copyright information) has changed', FALSE, $context['params']['dsString']);
   }
   $context['params']['dsString'] = islandora_pydio_bridge_add_ddi_event($datastream, 'MetadataEditing', 'Updating the metadata', FALSE, $context['params']['dsString']);
+  // check for status changes here and update the xacml if needed.  we could do this in the modified hook but we would have know way to know if it was an actual change
+  $status1 = islandora_pydio_bridge_get_ddi_status($datastream->content);
+  $status2 = islandora_pydio_bridge_get_ddi_status($context['params']['dsString']);
+  if($status1 !== $status2) {
+     islandora_pydio_bridge_ingest_set_xacml($object, $status2);
+  }
 }
 
 /**

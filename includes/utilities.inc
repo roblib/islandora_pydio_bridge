@@ -123,12 +123,13 @@ function islandora_pydio_bridge_ingest_set_embargo($objects, $end = "indefinite"
         $ds_array[] = $datastream->id;
       }
     }
+    islandora_scholar_embargo_set_embargo($object, NULL, NULL);
     islandora_scholar_embargo_set_embargo($object, $ds_array, $end);
   }
 }
 
 /**
- * Add the xacml to an object.
+ * Add or modify the xacml POLICY stream to an object.
  *
  * @param AbstractObject $object
  *   The object (or its pid) that the xacml should be added to
@@ -138,20 +139,24 @@ function islandora_pydio_bridge_ingest_set_embargo($objects, $end = "indefinite"
  *  Embargoed - Public users can access the description, but need to contact researcher for dataset view/download 
  *  Archive - Only Researcher/Admin can view/access
  */
-function islandora_pydio_bridge_ingest_set_xacml($object, $restriction) {
+function islandora_pydio_bridge_ingest_set_xacml($object, $restriction, $end = "indefinite") {
+  // Clear existing rules
+  $xacml = new IslandoraXacml($object);
+  $xacml->managementRule->clear(NULL);
+  $xacml->viewingRule->clear(NULL);
+  $xacml->datastreamRule->clear(NULL);
   switch ($restriction) {
     case "Public" :
-      $xacml = new IslandoraXacml($object);
       $xacml->managementRule->addUser(array($object->owner, 'admin'));
       $xacml->writeBackToFedora();
       break;
     case "Archive" :
-      $xacml = new IslandoraXacml($object);
       $xacml->viewingRule->addUser(array($object->owner, 'admin'));
       $xacml->managementRule->addUser(array($object->owner, 'admin'));
       $xacml->writeBackToFedora();
       break;
-    // Scholar embargo module creates the xacml for Embargoed case
+    case "Embargoed" :
+      islandora_pydio_bridge_ingest_set_embargo(array($object), $end);
   }
 }
 
@@ -232,14 +237,14 @@ function islandora_pydio_bridge_add_ddi_event($datastream, $type, $content, $upd
 }
 
 /**
- * Compare to DDI xml strings to see if the Copyright strings are equal
+ * Compare two DDI xml strings to see if the Copyright strings are equal
  * 
  * @param string $version1
  *   A string of xml
  * @param type $version2
  *   A string of xml
  * @return bool
- *   Returns TRUE if the licenses (Copyright info) are the same. *   
+ *   Returns TRUE if the licenses (Copyright info) are the same.
  */
 function islandora_pydio_bridge_compare_license($version1, $version2) {
   $xml1 = new DomDocument();
