@@ -78,8 +78,13 @@ function islandora_pydio_bridge_islandora_datastream_alter(AbstractObject $objec
   // check for status changes here and update the xacml if needed.  we could do this in the modified hook but we would have know way to know if it was an actual change
   $status1 = islandora_pydio_bridge_get_ddi_status($datastream->content);
   $status2 = islandora_pydio_bridge_get_ddi_status($context['params']['dsString']);
-  if($status1 !== $status2) {
-     islandora_pydio_bridge_ingest_set_xacml($object, $status2);
+  if ($status1 !== $status2) {
+    if($status1 === 'Embargoed'){
+      $ds_array = islandora_pydio_bridge_get_datastream_array($object);
+      islandora_scholar_embargo_lift_embargo($object, $ds_array);
+    }
+    islandora_pydio_bridge_ingest_set_xacml($object, $status2);
+    $context['params']['dsString'] = islandora_pydio_bridge_add_ddi_event($datastream, 'Other', 'The AccessCondition (status) has been changed', FALSE, $context['params']['dsString']);
   }
 }
 
@@ -120,7 +125,7 @@ function islandora_pydio_bridge_islandora_required_objects(IslandoraTuque $conne
  */
 function islandora_pydio_bridge_user_view($account, $view_mode) {
   $collection_pid = empty($account->data['islandora_pydio_bridge_person_data_collection']) ? NULL :
-      $account->data['islandora_pydio_bridge_person_data_collection'];
+    $account->data['islandora_pydio_bridge_person_data_collection'];
   if (!empty($collection_pid)) {
     $collection_link = l($collection_pid, "islandora/object/$collection_pid");
     $account->content['islandora_pydio_bridge_user_collection'] = array(
@@ -135,7 +140,7 @@ function islandora_pydio_bridge_user_view($account, $view_mode) {
     );
   }
   $entity_pid = empty($account->data['islandora_pydio_bridge_person_entity']) ? NULL :
-      $account->data['islandora_pydio_bridge_person_entity'];
+    $account->data['islandora_pydio_bridge_person_entity'];
   if (!empty($entity_pid)) {
     $entity_link = l($entity_pid, "islandora/object/$entity_pid");
     $account->content['islandora_pydio_bridge_person_entity'] = array(
@@ -185,9 +190,9 @@ function islandora_pydio_bridge_access_callback() {
 
 /**
  * Menu access callback.
- * 
+ *
  * We only want to show the versions tab if the object has a DDI datastream.
- * 
+ *
  * @param string $permission
  *   An Islandora permission
  * @param type $object
@@ -307,7 +312,7 @@ function islandora_pydio_bridge_xml_form_builder_get_self_transforms() {
 
 /**
  * Implements hook_islandora_datastream_modified().
- * 
+ *
  * We need to update datacite if the DDI is modified.
  */
 function islandora_pydio_bridge_islandora_datastream_modified($object, $datastream) {
@@ -327,7 +332,10 @@ function islandora_pydio_bridge_islandora_datastream_modified($object, $datastre
       $updated = islandora_datacite_doi_update_doi($object, $datastream->id);
       if ($updated < 0) {
         drupal_set_message(t('There was an error updating the Datacite metadata for @object - @dsid,'
-                . ' check the watchdog logs for more information', array('@object' => $object->id, '@dsid' => $datastream->id)));
+          . ' check the watchdog logs for more information', array(
+          '@object' => $object->id,
+          '@dsid' => $datastream->id
+        )));
       }
     }
   }
@@ -335,8 +343,8 @@ function islandora_pydio_bridge_islandora_datastream_modified($object, $datastre
 
 /**
  * Implements hook_islandora_object_purged().
- * 
- * We need to update datacite if the object is purged 
+ *
+ * We need to update datacite if the object is purged
  */
 function islandora_pydio_bridge_islandora_object_purged($pid) {
   module_load_include('inc', 'islandora_pydio_bridge', 'includes/pydio_ingest');
@@ -345,6 +353,6 @@ function islandora_pydio_bridge_islandora_object_purged($pid) {
   $deleted = islandora_datacite_doi_delete($pid);
   if ($deleted < 0) {
     drupal_set_message(t('There was an error deleting Datacite doi for @object, '
-            . ' check the watchdog logs for more information', array('@object' => $object->id)));
+      . ' check the watchdog logs for more information', array('@object' => $object->id)));
   }
 }

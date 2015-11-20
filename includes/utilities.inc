@@ -116,16 +116,31 @@ function islandora_pydio_bridge_ingest_create_doi($object, $restriction) {
 function islandora_pydio_bridge_ingest_set_embargo($objects, $end = "indefinite") {
   module_load_include('inc', 'islandora_scholar_embargo');
   foreach ($objects as $object) {
-    $ds_array = array();
-    foreach ($object as $datastream) {
-      // Embargo all datastreams except DDI
-      if ($datastream->id != 'DDI') {
-        $ds_array[] = $datastream->id;
-      }
-    }
-    islandora_scholar_embargo_set_embargo($object, NULL, NULL);
+    $ds_array = islandora_pydio_bridge_get_datastream_array($object);
     islandora_scholar_embargo_set_embargo($object, $ds_array, $end);
   }
+}
+
+/**
+ * Returns an array of datastream ids for an object for use with embargo.
+ *
+ * Will list all datastream ids except for DDI (we don't want to ever embargo the DDI datastream)
+ *
+ * @param AbstractObject $object
+ *   The Islandora object we want the list of datastreams from
+ *
+ * @return array
+ *   an array of datastreams ids.
+ */
+function islandora_pydio_bridge_get_datastream_array($object){
+  $ds_array = array();
+  foreach ($object as $datastream) {
+    // Embargo all datastreams except DDI
+    if ($datastream->id != 'DDI') {
+      $ds_array[] = $datastream->id;
+    }
+  }
+  return $ds_array;
 }
 
 /**
