@@ -70,8 +70,8 @@ function islandora_pydio_bridge_islandora_datastream_alter(AbstractObject $objec
   if ($datastream->id != 'DDI' || $context['action'] != 'modify' || empty($context['params']['dsString'])) {
     return;
   }
-  $test = islandora_pydio_bridge_compare_license($datastream->content, $context['params']['dsString']);
-  if (!$test) {
+  $same_license = islandora_pydio_bridge_compare_license($datastream->content, $context['params']['dsString']);
+  if (!$same_license) {
     $context['params']['dsString'] = islandora_pydio_bridge_add_ddi_event($datastream, 'MetadataEditing', 'The license (Copyright information) has changed', FALSE, $context['params']['dsString']);
   }
   $context['params']['dsString'] = islandora_pydio_bridge_add_ddi_event($datastream, 'MetadataEditing', 'Updating the metadata', FALSE, $context['params']['dsString']);
@@ -79,12 +79,41 @@ function islandora_pydio_bridge_islandora_datastream_alter(AbstractObject $objec
   $status1 = islandora_pydio_bridge_get_ddi_status($datastream->content);
   $status2 = islandora_pydio_bridge_get_ddi_status($context['params']['dsString']);
   if ($status1 !== $status2) {
-    if($status1 === 'Embargoed'){
+    if ($status1 === 'Embargoed') {
+      // Was embargoed but isn't now so lift the embargo
       $ds_array = islandora_pydio_bridge_get_datastream_array($object);
       islandora_scholar_embargo_lift_embargo($object, $ds_array);
     }
+    if ($status1 === 'Archive') {
+      // Changing from a state that has no DOI to one that has a DOI
+      // Add a DOI to the DDI
+      $xslt_filename = islandora_datacite_doi_get_xslt($datastream->id);
+      try {
+        $context['params']['dsString'] = islandora_datacite_doi_mint($object, $datastream->id, $xslt_filename, FALSE);
+        $context['params']['dsString'] = islandora_pydio_bridge_add_ddi_event($datastream, 'Other', 'minted a DOI and updated the DDI with the DOI', FALSE, $context['params']['dsString']);
+      }
+      catch (Exception $e) {
+        drupal_set_message(t('There was an error registering or minting the Datacite DOI for @object - @dsid, @msg', array(
+          '@object' => $object->id,
+          '@dsid' => $datastream->id,
+          '@msg' => $e->getMessage())),'error');
+      }
+    }
+    if($status2 === 'Archive'){
+      // Changing from a state that had a DOI to one that has no DOI so attempt to set the DOI inactive
+      try {
+        islandora_datacite_doi_delete($$object->id);
+      } catch (Exception $e){
+        drupal_set_message(t('There was an error setting the Datacite DOI to inactive for @object - @dsid, @msg', array(
+          '@object' => $object->id,
+          '@dsid' => $datastream->id,
+          '@msg' => $e->getMessage())), 'warning');
+      }
+    }
+    // Status is not the same update the xacml and add A DDI event
     islandora_pydio_bridge_ingest_set_xacml($object, $status2);
-    $context['params']['dsString'] = islandora_pydio_bridge_add_ddi_event($datastream, 'Other', 'The AccessCondition (status) has been changed', FALSE, $context['params']['dsString']);
+    $context['params']['dsString'] = islandora_pydio_bridge_add_ddi_event($datastream, 'Other', "The security policy has been modified.", FALSE, $context['params']['dsString']);
+    $context['params']['dsString'] = islandora_pydio_bridge_add_ddi_event($datastream, 'MetadataEditing', "The AccessCondition (status) has been changed from $status1 to $status2", FALSE, $context['params']['dsString']);
   }
 }
 
