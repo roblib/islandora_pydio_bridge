@@ -132,7 +132,7 @@ function islandora_pydio_bridge_ingest_set_embargo($objects, $end = "indefinite"
  * @return array
  *   an array of datastreams ids.
  */
-function islandora_pydio_bridge_get_datastream_array($object){
+function islandora_pydio_bridge_get_datastream_array($object) {
   $ds_array = array();
   foreach ($object as $datastream) {
     // Embargo all datastreams except DDI
