@@ -101,7 +101,7 @@ function islandora_pydio_bridge_islandora_datastream_alter(AbstractObject $objec
     if ($status2 === 'Archive') {
       // Changing from a state that had a DOI to one that has no DOI so attempt to set the DOI inactive
       try {
-        islandora_datacite_doi_delete($$object->id);
+        islandora_datacite_doi_delete($object->id);
       } catch (Exception $e) {
         drupal_set_message(t('There was an error setting the Datacite DOI to inactive for @object - @dsid, @msg', array(
           '@object' => $object->id,
@@ -354,7 +354,8 @@ function islandora_pydio_bridge_islandora_datastream_modified($object, $datastre
   $xpath = new DOMXPath($xml);
   $xpath->registerNamespace('r', 'ddi:reusable:3_2');
   $results = $xpath->query($query);
-  if ($results->length > 0) {
+  $status = islandora_pydio_bridge_get_ddi_status($datastream->content);
+  if ($results->length > 0 && $status !== 'Archive') {
     $identifier = $results->item(0)->nodeValue;
     if (!empty($identifier)) {
       $updated = islandora_datacite_doi_update_doi($object, $datastream->id);
