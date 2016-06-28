@@ -386,3 +386,4 @@ function islandora_pydio_bridge_islandora_object_purged($pid) {
       . ' check the watchdog logs for more information', array('@object' => $object->id)));
   }
 }
+

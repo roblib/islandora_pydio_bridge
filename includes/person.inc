@@ -5,6 +5,16 @@
  * Handles creation of a users Islandore data collection and Entity object.
  */
 
+@include_once 'sites/all/libraries/tuque/Datastream.php';
+@include_once 'sites/all/libraries/tuque/FedoraApi.php';
+@include_once 'sites/all/libraries/tuque/FedoraApiSerializer.php';
+@include_once 'sites/all/libraries/tuque/Object.php';
+@include_once 'sites/all/libraries/tuque/RepositoryConnection.php';
+@include_once 'sites/all/libraries/tuque/Cache.php';
+@include_once 'sites/all/libraries/tuque/RepositoryException.php';
+@include_once 'sites/all/libraries/tuque/Repository.php';
+@include_once 'sites/all/libraries/tuque/FedoraRelationships.php';
+
 /**
  * Verify that the users entity and collection object exist in islandora/fedora.
  *

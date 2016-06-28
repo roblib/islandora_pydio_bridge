@@ -102,7 +102,9 @@ function islandora_pydio_bridge_ingest_form($form, &$form_state, $params) {
     '#default_value' => 'indefinite',
   );
   $form['embargo_date'] = array(
-    '#type' => 'datepicker',
+    '#type' => 'date_popup',
+    '#timepicker' => FALSE,
+    '#date_format' => 'Y-m-d',
     '#title' => t('Embargo date'),
     '#description' => t('The date until which this item should be embargoed (we will check with you on this date to confirm that it is ready for release)'),
     '#states' => array(
@@ -706,7 +708,7 @@ function islandora_pydio_bridge_get_content_model($file) {
     case "video/quicktime":
     case "video/m4v":
     case "video/x-matroska":
-    case "video/x-msvideo";
+    case "video/x-msvideo":
     case "video/ogg":
       if (isset($enabled_solution_packs['islandora_video'])) {
         $content_model = "islandora:sp_videoCModel";
