@@ -553,7 +553,9 @@ function islandora_pydio_bridge_download_file_data($params, $download_url, &$con
   $ch = curl_init($download_url);
   curl_setopt($ch, CURLOPT_COOKIE, $cookies);
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-  curl_setopt($ch, CURLOPT_TIMEOUT, 50);
+  //large files were timing out, setting at 10minutes for now, we may have to set this to
+  // 0 if we want to support files of any size.
+  curl_setopt($ch, CURLOPT_TIMEOUT, 600);
   curl_setopt($ch, CURLOPT_FILE, $fp);
   curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
   curl_exec($ch);

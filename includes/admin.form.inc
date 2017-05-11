@@ -28,8 +28,7 @@ function islandora_pydio_bridge_admin_form($form, &$form_state) {
     '#description' => t('The PID of the Root Collection Object'),
     '#required' => TRUE,
   );
-// TODO refactor this variable name
-  $form['pydio_path'] = array(
+  $form['islandora_pydio_bridge_pydio_path '] = array(
     '#type' => 'textfield',
     '#title' => t('Pydio path'),
     '#default_value' => variable_get('islandora_pydio_bridge_pydio_path', 'pydio/'),
