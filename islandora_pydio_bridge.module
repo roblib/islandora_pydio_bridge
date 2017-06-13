@@ -84,7 +84,7 @@ function islandora_pydio_bridge_islandora_datastream_alter(AbstractObject $objec
       $ds_array = islandora_pydio_bridge_get_datastream_array($object);
       islandora_scholar_embargo_lift_embargo($object, $ds_array);
     }
-    if ($status1 === 'Archive') {
+    if ($status1 === 'Archive' && module_exists('islandora_datacite_doi')) {
       // Changing from a state that has no DOI to one that has a DOI
       // Add a DOI to the DDI
       try {
@@ -98,7 +98,7 @@ function islandora_pydio_bridge_islandora_datastream_alter(AbstractObject $objec
           '@msg' => $e->getMessage())), 'error');
       }
     }
-    if ($status2 === 'Archive') {
+    if ($status2 === 'Archive' && module_exists('islandora_datacite_doi')) {
       // Changing from a state that had a DOI to one that has no DOI so attempt to set the DOI inactive
       try {
         islandora_datacite_doi_delete($object->id);
@@ -357,7 +357,7 @@ function islandora_pydio_bridge_islandora_datastream_modified($object, $datastre
   $status = islandora_pydio_bridge_get_ddi_status($datastream->content);
   if ($results->length > 0 && $status !== 'Archive') {
     $identifier = $results->item(0)->nodeValue;
-    if (!empty($identifier)) {
+    if (!empty($identifier) && module_exists('islandora_datacite_doi')) {
       $updated = islandora_datacite_doi_update_doi($object, $datastream->id);
       if ($updated < 0) {
         drupal_set_message(t('There was an error updating the Datacite metadata for @object - @dsid,'
@@ -379,11 +379,15 @@ function islandora_pydio_bridge_islandora_object_purged($pid) {
   module_load_include('inc', 'islandora_pydio_bridge', 'includes/pydio_ingest');
   // Attempt to mark the doi as inactive, at this point we don't know for sure if the
   // object had a doi or not.
-  try {
-    islandora_datacite_doi_delete($pid);
-  } catch (Exception $e){
-    drupal_set_message(t('There was an error deleting Datacite doi for @object, '
-      . ' check the watchdog logs for more information', array('@object' => $object->id)));
+  // TODO check for a doi before attempting to remove it
+  if(module_exists('islandora_datacite_doi')) {
+    try {
+      islandora_datacite_doi_delete($pid);
+    }
+    catch (Exception $e) {
+      drupal_set_message(t('There was an error deleting Datacite doi for @object, '
+        . ' check the watchdog logs for more information', array('@object' => $object->id)));
+    }
   }
 }
 

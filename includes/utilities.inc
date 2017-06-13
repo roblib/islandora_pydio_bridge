@@ -95,12 +95,14 @@ function islandora_pydio_bridge_ingest_create_doi($object, $restriction) {
   if ($restriction == 'Archive') {
     return;
   }
-  $result = islandora_datacite_doi_mint_doi($object, 'DDI', 'DDI');
-  if ($result < 0) {
-    drupal_set_message(t('DOI error for @object, check watchdog logs for more information.', array('@object' => $object->id)), 'warning');
-    return;
+  if(module_exists('islandora_datacite_doi')) {
+    $result = islandora_datacite_doi_mint_doi($object, 'DDI', 'DDI');
+    if ($result < 0) {
+      drupal_set_message(t('DOI error for @object, check watchdog logs for more information.', array('@object' => $object->id)), 'warning');
+      return;
+    }
+    islandora_pydio_bridge_add_ddi_event($object['DDI'], 'Other', 'minted a DOI and updated the DDI with the DOI');
   }
-  islandora_pydio_bridge_add_ddi_event($object['DDI'], 'Other', 'minted a DOI and updated the DDI with the DOI');
 }
 
 /**
