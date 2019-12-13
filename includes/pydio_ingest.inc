@@ -32,9 +32,14 @@ function islandora_pydio_bridge_ingest() {
 
   // Parse download_query_params into an associative array.
   if (!is_array($params['download_query_params'])) {
+    // Assumes file is always the last parameter in the pydio URL
+    // But allows for & in the filename which breaks normal parsing.
+    $tmp_file_path = explode('&file=', $params['download_query_params'], 2)[1];
     $qp = array();
     parse_str($params['download_query_params'], $qp);
     $params['download_query_params'] = $qp;
+    // Override the file so we can handle filenames with &.
+    $params['download_query_params']['file'] = $tmp_file_path;
   }
   // Check to see if a folder is trying to update and treat it as a zip.
   if ($params['is_dir'] == 'true') {
