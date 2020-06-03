@@ -26,6 +26,7 @@ function islandora_pydio_bridged_uninstall() {
     'islandora_pydio_bridge_repository_pid',
     'islandora_pydio_bridge_pydio_path',
     'islandora_pydio_bridge_pid_namespace',
+    'islandora_pydio_bridge_ddi_form_name',
   );
   array_walk($variables, 'variable_del');
 }

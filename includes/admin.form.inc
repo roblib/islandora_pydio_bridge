@@ -43,12 +43,20 @@ function islandora_pydio_bridge_admin_form($form, &$form_state) {
     '#description' => t('The pid namespace to use for items exported from Pydio'),
     '#required' => TRUE,
   );
-  
+
   $form['islandora_pydio_bridge_agency'] = array(
     '#type' => 'textfield',
     '#title' => t('Agency Name'),
     '#default_value' => variable_get('islandora_pydio_bridge_agency', 'ddi agency'),
     '#description' => t('The agency name to use in DDI LifecycleEvents'),
+    '#required' => TRUE,
+  );
+
+  $form['islandora_pydio_bridge_ddi_form_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Islandora Pydio Bridge DDI form'),
+    '#default_value' => variable_get('islandora_pydio_bridge_ddi_form_name', 'Islandora Pydio Bridge DDI form'),
+    '#description' => t('The name of the form to use when publishing Pydio content to Islandora.'),
     '#required' => TRUE,
   );
 
