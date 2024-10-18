@@ -63,6 +63,23 @@ function islandora_pydio_bridge_theme() {
 }
 
 /**
+ * Implements hook_islandora_ingested().
+ */
+function islandora_pydio_bridge_islandora_object_ingested(AbstractObject $object) {
+    global $user;
+    module_load_include('inc', 'islandora', 'includes/utilities');
+
+    $restrictions = 'Archive';
+    $ddi = $object['DDI']->content;
+    if(!empty($ddi)) {
+        $status = islandora_pydio_bridge_get_ddi_status($ddi);
+        $restrictions = isset($status) ? $status : 'Archive';
+    }
+    islandora_pydio_bridge_ingest_set_xacml($object, $restrictions);
+    islandora_pydio_bridge_ingest_create_doi($object, $restrictions);
+}
+
+/**
  * Implements hook_islandora_datastream_alter
  */
 function islandora_pydio_bridge_islandora_datastream_alter(AbstractObject $object, AbstractDatastream $datastream, array &$context) {
